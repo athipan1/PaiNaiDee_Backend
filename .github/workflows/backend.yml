@@ -24,7 +24,7 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Run Flask app tests (ถ้ามี)
+      - name: Run Flask app tests
         run: |
           source venv/bin/activate
-          pytest
+          python -m pytest
