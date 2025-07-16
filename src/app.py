@@ -6,6 +6,14 @@ from src.config import config
 import os
 import json
 
+def parse_image_urls(raw):
+    if isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except:
+            return []
+    return raw
+
 def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
@@ -61,6 +69,11 @@ def get_all_attractions():
 
         cur.execute(query, tuple(params))
         results = cur.fetchall()
+
+        for row in results:
+            if 'image_urls' in row:
+                row['image_urls'] = parse_image_urls(row['image_urls'])
+
         response = make_response(jsonify(results))
         response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return response
@@ -83,6 +96,8 @@ def get_attraction_detail(attraction_id):
         cur.execute("SELECT * FROM attractions WHERE id = %s", (attraction_id,))
         data = cur.fetchone()
         if data:
+            if 'image_urls' in data:
+                data['image_urls'] = parse_image_urls(data['image_urls'])
             response = make_response(jsonify(data))
             response.headers['Content-Type'] = 'application/json; charset=utf-8'
             return response
