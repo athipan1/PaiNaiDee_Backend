@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -27,7 +27,9 @@ def get_db_connection():
 # --- API ---
 @app.route('/')
 def home():
-    return jsonify(message="Welcome to Pai Nai Dii Backend!")
+    response = make_response(jsonify(message="Welcome to Pai Nai Dii Backend!"))
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
 
 @app.route('/api/attractions', methods=['GET'])
 def get_all_attractions():
@@ -59,10 +61,14 @@ def get_all_attractions():
 
         cur.execute(query, tuple(params))
         results = cur.fetchall()
-        return jsonify(results)
+        response = make_response(jsonify(results))
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify(error="Failed to fetch data"), 500
+        response = make_response(jsonify(error="Failed to fetch data"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     finally:
         if cur: cur.close()
         if conn: conn.close()
@@ -77,11 +83,17 @@ def get_attraction_detail(attraction_id):
         cur.execute("SELECT * FROM attractions WHERE id = %s", (attraction_id,))
         data = cur.fetchone()
         if data:
-            return jsonify(data)
-        return jsonify(message="Not found"), 404
+            response = make_response(jsonify(data))
+            response.headers['Content-Type'] = 'application/json; charset=utf-8'
+            return response
+        response = make_response(jsonify(message="Not found"), 404)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify(error="Error getting detail"), 500
+        response = make_response(jsonify(error="Error getting detail"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     finally:
         if cur: cur.close()
         if conn: conn.close()
@@ -90,7 +102,9 @@ def get_attraction_detail(attraction_id):
 def add_attraction():
     data = request.get_json()
     if not data or 'name' not in data:
-        return jsonify(message="Missing 'name'"), 400
+        response = make_response(jsonify(message="Missing 'name'"), 400)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
     try:
         # แปลง image_urls ให้เป็น string JSON ถ้ายังเป็น list อยู่
@@ -117,10 +131,14 @@ def add_attraction():
         ))
         new_id = cur.fetchone()[0]
         conn.commit()
-        return jsonify(message="Added", id=new_id), 201
+        response = make_response(jsonify(message="Added", id=new_id), 201)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify(error="Insert failed"), 500
+        response = make_response(jsonify(error="Insert failed"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     finally:
         if cur: cur.close()
         if conn: conn.close()
