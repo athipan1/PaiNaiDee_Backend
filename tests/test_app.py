@@ -1,13 +1,28 @@
 import pytest
-from src.app import app
+import sys
+import os
+
+from src.app import create_app, home, get_all_attractions, get_attraction_detail, add_attraction
 import json
 from unittest.mock import patch, MagicMock
 
 @pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+def app():
+    app = create_app('development')
+    app.config.update({
+        "TESTING": True,
+    })
+
+    app.route('/')(home)
+    app.route('/api/attractions', methods=['GET'])(get_all_attractions)
+    app.route('/api/attractions/<int:attraction_id>', methods=['GET'])(get_attraction_detail)
+    app.route('/api/attractions', methods=['POST'])(add_attraction)
+
+    yield app
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
 def test_home_page(client):
     """Test the home page."""
