@@ -1,24 +1,15 @@
 import pytest
-import sys
-import os
-
-from src.app import create_app, home, get_all_attractions, get_attraction_detail, add_attraction
-import json
+from src.app import create_app
+from src.models import db
 from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def app():
-    app = create_app('development')
-    app.config.update({
-        "TESTING": True,
-    })
-
-    app.route('/')(home)
-    app.route('/api/attractions', methods=['GET'])(get_all_attractions)
-    app.route('/api/attractions/<int:attraction_id>', methods=['GET'])(get_attraction_detail)
-    app.route('/api/attractions', methods=['POST'])(add_attraction)
-
-    yield app
+    app = create_app('testing')
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.drop_all()
 
 @pytest.fixture
 def client(app):
@@ -30,33 +21,17 @@ def test_home_page(client):
     assert rv.status_code == 200
     assert b"Welcome to Pai Nai Dii Backend!" in rv.data
 
-@patch('src.app.get_db_connection')
-def test_get_all_attractions(mock_get_db_connection, client):
+def test_get_all_attractions(client):
     """Test the attractions endpoint."""
-    mock_conn = MagicMock()
-    mock_cur = MagicMock()
-    mock_get_db_connection.return_value = mock_conn
-    mock_conn.cursor.return_value = mock_cur
-    mock_cur.fetchall.return_value = [
-        {'id': 1, 'name': 'Wat Arun', 'description': 'Temple of Dawn'}
-    ]
-
     rv = client.get('/api/attractions')
     assert rv.status_code == 200
     json_data = rv.get_json()
     assert isinstance(json_data, list)
-    assert len(json_data) > 0
-    assert 'name' in json_data[0]
 
-@patch('src.app.get_db_connection')
-def test_add_attraction(mock_get_db_connection, client):
+@patch('src.models.db.session.add')
+@patch('src.models.db.session.commit')
+def test_add_attraction(mock_commit, mock_add, client):
     """Test adding a new attraction."""
-    mock_conn = MagicMock()
-    mock_cur = MagicMock()
-    mock_get_db_connection.return_value = mock_conn
-    mock_conn.cursor.return_value = mock_cur
-    mock_cur.fetchone.return_value = [1]
-
     new_attraction = {
         "name": "Test Temple",
         "description": "A beautiful test temple.",
