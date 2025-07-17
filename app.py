@@ -1,4 +1,4 @@
-﻿from flask import Flask, jsonify, request
+﻿from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -26,7 +26,32 @@ def get_db_connection():
         password=DB_PASSWORD,
         port=DB_PORT
     )
+def fetch_data_from_database():
+    path = os.path.join(os.path.dirname(__file__), "attractions_cleaned_from_api.json")
+    with open(path, encoding="utf-8-sig") as f:  # ✅ ใช้ utf-8-sig เพื่อข้าม BOM
+        return json.load(f)
 
+@app.route("/api/attractions", methods=["GET"])
+def get_attractions():
+    try:
+        data = fetch_data_from_database()
+        response = make_response(jsonify(data))
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        return response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route("/api/ping-db")
+def ping_db():
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM attractions;")
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        return jsonify({"status": "✅ Connected", "rows": count})
+    except Exception as e:
+        return jsonify({"status": "❌ Failed", "error": str(e)}), 500
 # --- API ---
 @app.route('/')
 def home():

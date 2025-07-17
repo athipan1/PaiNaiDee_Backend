@@ -1,0 +1,50 @@
+﻿[
+    {
+        "address":  "",
+        "category":  "",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  2,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "url1"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "วัดพระแก้ว",
+        "opening_hours":  "",
+        "province":  "กรุงเทพมหานคร",
+        "website":  ""
+    },
+    {
+        "address":  "",
+        "category":  "",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  3,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "url2"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "หาดบางแสน",
+        "opening_hours":  "",
+        "province":  "ชลบุรี",
+        "website":  ""
+    }
+]
