@@ -1,0 +1,147 @@
+﻿[
+    {
+        "address":  "",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  2,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "url1"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "วัดพระแก้ว",
+        "opening_hours":  "",
+        "province":  "กรุงเทพมหานคร",
+        "website":  ""
+    },
+    {
+        "address":  "",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  4,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "https://example.com/img1.jpg"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "ไม่ระบุ",
+        "opening_hours":  "",
+        "province":  "ไม่ระบุ",
+        "website":  ""
+    },
+    {
+        "address":  "",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  3,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "url2"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "หาดบางแสน",
+        "opening_hours":  "",
+        "province":  "ชลบุรี",
+        "website":  ""
+    },
+    {
+        "address":  "",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  5,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "https://example.com/img2.jpg"
+                                         ]
+                           }
+                       ],
+        "latitude":  0,
+        "longitude":  0,
+        "main_image_url":  "",
+        "name":  "ไม่ระบุ",
+        "opening_hours":  "",
+        "province":  "ไม่ระบุ",
+        "website":  ""
+    },
+    {
+        "address":  "158 ?. ??????? ??????????? ????????????? ????????????? 10600",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "02 891 2185",
+        "description":  "????????????????????????? ??????????????????????????????",
+        "district":  "ไม่ระบุ",
+        "entrance_fee":  "???????? 100 ???, ????? ???",
+        "id":  1,
+        "image_urls":  [
+                           {
+                               "Count":  2,
+                               "value":  [
+                                             "https://example.com/watarun_1.jpg",
+                                             "https://example.com/watarun_2.jpg"
+                                         ]
+                           }
+                       ],
+        "latitude":  13.743,
+        "longitude":  100.4893,
+        "main_image_url":  "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wat_Arun_-_Bangkok_-_Thailand.jpg/1280px-Wat_Arun_-_Bangkok_-_Thailand.jpg",
+        "name":  "ไม่ระบุ",
+        "opening_hours":  "?????? 08:00 - 18:00",
+        "province":  "ไม่ระบุ",
+        "website":  "http://www.watarun.net/"
+    },
+    {
+        "address":  "",
+        "category":  "ไม่ระบุ",
+        "contact_phone":  "",
+        "description":  "",
+        "district":  "",
+        "entrance_fee":  "",
+        "id":  6,
+        "image_urls":  [
+                           {
+                               "Count":  1,
+                               "value":  [
+                                             "https://example.com/img1.jpg"
+                                         ]
+                           }
+                       ],
+        "latitude":  13.74,
+        "longitude":  100.49,
+        "main_image_url":  "",
+        "name":  "ไม่ระบุ",
+        "opening_hours":  "",
+        "province":  "ไม่ระบุ",
+        "website":  ""
+    }
+]
