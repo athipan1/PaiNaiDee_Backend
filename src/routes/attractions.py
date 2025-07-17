@@ -1,17 +1,14 @@
-import json
-from flask import Blueprint, jsonify, request
-from ..models import Attraction, db
+from flask import Blueprint, jsonify, request, make_response
+from src.models import db, Attraction
 
 attractions_bp = Blueprint('attractions', __name__)
 
 @attractions_bp.route('/attractions', methods=['GET'])
-def get_attractions():
+def get_all_attractions():
     try:
         query = Attraction.query
 
-        # Search by name or description
-        q = request.args.get('q')
-        if q:
+        if q := request.args.get('q'):
             search_term = f"%{q}%"
             query = query.filter(
                 db.or_(
@@ -19,75 +16,73 @@ def get_attractions():
                     Attraction.description.ilike(search_term)
                 )
             )
-
-        # Filter by province
-        province = request.args.get('province')
-        if province:
+        if province := request.args.get('province'):
             query = query.filter(Attraction.province.ilike(f"%{province}%"))
-
-        # Filter by category
-        category = request.args.get('category')
-        if category:
+        if category := request.args.get('category'):
             query = query.filter(Attraction.category.ilike(f"%{category}%"))
 
-        attractions = query.all()
+        attractions = query.order_by(Attraction.name).all()
+        results = [attraction.to_dict() for attraction in attractions]
 
-        attraction_list = []
-        for attraction in attractions:
-            # Safely load image_urls JSON
-            try:
-                image_urls = json.loads(attraction.image_urls) if attraction.image_urls else []
-            except (json.JSONDecodeError, TypeError):
-                image_urls = []
-
-            attraction_list.append({
-                'id': attraction.id,
-                'name': attraction.name,
-                'description': attraction.description,
-                'latitude': attraction.latitude,
-                'longitude': attraction.longitude,
-                'province': attraction.province,
-                'category': attraction.category,
-                'image_urls': image_urls
-            })
-
-        return jsonify(attraction_list)
-
+        response = make_response(jsonify(results))
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error: {e}")
+        response = make_response(jsonify(error="Failed to fetch data"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
+@attractions_bp.route('/attractions/<int:attraction_id>', methods=['GET'])
+def get_attraction_detail(attraction_id):
+    try:
+        attraction = Attraction.query.get(attraction_id)
+        if attraction:
+            response = make_response(jsonify(attraction.to_dict()))
+            response.headers['Content-Type'] = 'application/json; charset=utf-8'
+            return response
+        response = make_response(jsonify(message="Not found"), 404)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+    except Exception as e:
+        print(f"Error: {e}")
+        response = make_response(jsonify(error="Error getting detail"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
 @attractions_bp.route('/attractions', methods=['POST'])
 def add_attraction():
+    data = request.get_json()
+    if not data or 'name' not in data:
+        response = make_response(jsonify(message="Missing 'name'"), 400)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
     try:
-        data = request.get_json()
-
-        # Basic validation
-        if not data or 'name' not in data:
-            return jsonify({'error': 'Name is required'}), 400
-
-        # Convert image_urls list to JSON string
-        image_urls = data.get('image_urls', [])
-        if isinstance(image_urls, list):
-            image_urls_json = json.dumps(image_urls)
-        else:
-            # Handle cases where image_urls is not a list (e.g., already a string)
-            image_urls_json = image_urls
-
         new_attraction = Attraction(
-            name=data['name'],
-            description=data.get('description', ''),
+            name=data.get('name'),
+            description=data.get('description'),
+            address=data.get('address'),
+            province=data.get('province'),
+            district=data.get('district'),
             latitude=data.get('latitude'),
             longitude=data.get('longitude'),
-            province=data.get('province', ''),
-            category=data.get('category', ''),
-            image_urls=image_urls_json
+            category=data.get('category'),
+            opening_hours=data.get('opening_hours'),
+            entrance_fee=data.get('entrance_fee'),
+            contact_phone=data.get('contact_phone'),
+            website=data.get('website'),
+            main_image_url=data.get('main_image_url'),
+            image_urls=data.get('image_urls')
         )
-
         db.session.add(new_attraction)
         db.session.commit()
-
-        return jsonify({'message': 'Attraction added successfully', 'id': new_attraction.id}), 201
-
+        response = make_response(jsonify(message="Added", id=new_attraction.id), 201)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        print(f"Error: {e}")
+        response = make_response(jsonify(error="Insert failed"), 500)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
