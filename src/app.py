@@ -4,6 +4,7 @@ from flask_cors import CORS
 from src.config import config
 from src.models import db
 from src.routes.attractions import attractions_bp
+from src.routes.reviews import reviews_bp
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -13,6 +14,7 @@ def create_app(config_name):
     CORS(app)
 
     app.register_blueprint(attractions_bp, url_prefix='/api')
+    app.register_blueprint(reviews_bp, url_prefix='/api')
 
     @app.route('/')
     def home():
