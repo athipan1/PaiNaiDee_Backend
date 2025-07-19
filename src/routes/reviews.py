@@ -1,39 +1,39 @@
-from flask import Blueprint, jsonify, request, make_response
-from src.models import db, Review
+from flask import Blueprint, request, abort
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from src.models import db, Review, User
+from src.utils import standardized_response
 
 reviews_bp = Blueprint('reviews', __name__)
 
 @reviews_bp.route('/reviews', methods=['POST'])
+@jwt_required()
 def add_review():
     data = request.get_json()
+    print("Request json data:", data)
     if not data:
-        return make_response(jsonify(message="Invalid data"), 400)
+        abort(400, description="Invalid data.")
 
-    # Validate rating
     rating = data.get('rating')
     if rating is None or not (1 <= rating <= 5):
-        return make_response(jsonify(message="Rating must be between 1 and 5"), 400)
+        abort(400, description="Rating must be between 1 and 5.")
 
-    # Validate comment length
     comment = data.get('comment')
     if comment and len(comment) > 500:
-        return make_response(jsonify(message="Comment must not exceed 500 characters"), 400)
+        abort(400, description="Comment must not exceed 500 characters.")
+
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
 
     try:
         new_review = Review(
             place_id=data.get('place_id'),
-            user_name=data.get('user_name'),
+            user_name=user.username,
             rating=rating,
             comment=comment
         )
         db.session.add(new_review)
         db.session.commit()
-        response = make_response(jsonify(message="รีวิวถูกบันทึกแล้ว"), 201)
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
-        return response
-    except Exception as e:
+        return standardized_response(message="Review added successfully.", status_code=201)
+    except Exception:
         db.session.rollback()
-        print(f"Error: {e}")
-        response = make_response(jsonify(error="Insert failed"), 500)
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
-        return response
+        abort(500, description="Failed to add review.")

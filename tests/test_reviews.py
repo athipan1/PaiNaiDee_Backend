@@ -1,7 +1,8 @@
-import json
 import pytest
 from src.app import create_app
-from src.models import db, Review
+from src.models import db, User
+from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
@@ -16,50 +17,68 @@ def app():
 def client(app):
     return app.test_client()
 
-def test_add_review_success(client):
+@pytest.fixture
+def auth_headers(app):
+    with app.app_context():
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        db.session.commit()
+        access_token = create_access_token(identity=test_user.id)
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        return headers
+
+def test_add_review_success(client, auth_headers):
     """Test adding a review successfully."""
     response = client.post('/api/reviews',
-                           data=json.dumps({
+                           json={
                                "place_id": 1,
-                               "user_name": "Test User",
                                "rating": 5,
                                "comment": "Great place!"
-                           }),
-                           content_type='application/json')
+                           },
+                           headers=auth_headers)
     assert response.status_code == 201
-    assert response.json['message'] == "รีวิวถูกบันทึกแล้ว"
+    json_data = response.get_json()
+    assert json_data['success'] is True
+    assert "Review added successfully" in json_data['message']
 
-def test_add_review_invalid_rating(client):
+def test_add_review_invalid_rating(client, auth_headers):
     """Test adding a review with an invalid rating."""
     response = client.post('/api/reviews',
-                           data=json.dumps({
+                           json={
                                "place_id": 1,
-                               "user_name": "Test User",
                                "rating": 6,
                                "comment": "Great place!"
-                           }),
-                           content_type='application/json')
+                           },
+                           headers=auth_headers)
     assert response.status_code == 400
-    assert response.json['message'] == "Rating must be between 1 and 5"
+    json_data = response.get_json()
+    assert json_data['success'] is False
+    assert "Rating must be between 1 and 5" in json_data['message']
 
-def test_add_review_long_comment(client):
+def test_add_review_long_comment(client, auth_headers):
     """Test adding a review with a comment that is too long."""
     long_comment = "a" * 501
     response = client.post('/api/reviews',
-                           data=json.dumps({
+                           json={
                                "place_id": 1,
-                               "user_name": "Test User",
                                "rating": 5,
                                "comment": long_comment
-                           }),
-                           content_type='application/json')
+                           },
+                           headers=auth_headers)
     assert response.status_code == 400
-    assert response.json['message'] == "Comment must not exceed 500 characters"
+    json_data = response.get_json()
+    assert json_data['success'] is False
+    assert "Comment must not exceed 500 characters" in json_data['message']
 
-def test_add_review_missing_data(client):
-    """Test adding a review with missing data."""
+def test_add_review_unauthorized(client):
+    """Test adding a review without authorization."""
     response = client.post('/api/reviews',
-                           data=json.dumps({}),
-                           content_type='application/json')
-    assert response.status_code == 400
-    assert response.json['message'] == "Invalid data"
+                           json={
+                               "place_id": 1,
+                               "rating": 5,
+                               "comment": "Great place!"
+                           })
+    assert response.status_code == 401

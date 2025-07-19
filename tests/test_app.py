@@ -1,7 +1,9 @@
+import io
 import pytest
 from src.app import create_app
-from src.models import db
-from unittest.mock import patch, MagicMock
+from src.models import db, Attraction, User
+from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def app():
@@ -15,32 +17,85 @@ def app():
 def client(app):
     return app.test_client()
 
+@pytest.fixture
+def auth_headers(app):
+    with app.app_context():
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        db.session.commit()
+        access_token = create_access_token(identity=test_user.id)
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        return headers
+
 def test_home_page(client):
     """Test the home page."""
     rv = client.get('/')
     assert rv.status_code == 200
-    assert b"Welcome to Pai Nai Dii Backend!" in rv.data
+    json_data = rv.get_json()
+    assert json_data['success'] is True
+    assert "Welcome to Pai Nai Dii Backend!" in json_data['message']
 
 def test_get_all_attractions(client):
     """Test the attractions endpoint."""
     rv = client.get('/api/attractions')
     assert rv.status_code == 200
     json_data = rv.get_json()
-    assert isinstance(json_data, list)
+    assert json_data['success'] is True
+    assert 'attractions' in json_data['data']
+    assert 'pagination' in json_data['data']
 
-@patch('src.models.db.session.add')
-@patch('src.models.db.session.commit')
-def test_add_attraction(mock_commit, mock_add, client):
+def test_add_attraction(client):
     """Test adding a new attraction."""
-    new_attraction = {
-        "name": "Test Temple",
-        "description": "A beautiful test temple.",
-        "province": "Test Province",
-        "category": "Temple",
-        "image_urls": ["http://example.com/image.jpg"]
+    data = {
+        'name': 'Test Temple',
+        'description': 'A beautiful test temple.',
+        'province': 'Test Province',
+        'category': 'Temple',
+        'cover_image': (io.BytesIO(b"abcdef"), 'test.jpg')
     }
-    rv = client.post('/api/attractions', json=new_attraction)
+
+    rv = client.post('/api/attractions', data=data, content_type='multipart/form-data')
     assert rv.status_code == 201
     json_data = rv.get_json()
-    assert json_data['message'] == 'Added'
-    assert 'id' in json_data
+    assert json_data['success'] is True
+    assert 'Attraction added successfully' in json_data['message']
+    assert 'id' in json_data['data']
+
+def test_update_attraction(client, auth_headers, app):
+    """Test updating an attraction."""
+    with app.app_context():
+        # Add an attraction to update
+        attraction = Attraction(name="Old Name", description="Old Description", province="Old Province")
+        db.session.add(attraction)
+        db.session.commit()
+        attraction_id = attraction.id
+
+    update_data = {
+        "name": "New Name",
+        "description": "New Description"
+    }
+
+    rv = client.put(f'/api/attractions/{attraction_id}', headers=auth_headers, json=update_data)
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data['success'] is True
+    assert 'Attraction updated successfully' in json_data['message']
+    assert json_data['data']['name'] == 'New Name'
+
+def test_delete_attraction(client, auth_headers, app):
+    """Test deleting an attraction."""
+    with app.app_context():
+        # Add an attraction to delete
+        attraction = Attraction(name="To Be Deleted", description="Delete me", province="Delete Province")
+        db.session.add(attraction)
+        db.session.commit()
+        attraction_id = attraction.id
+
+    rv = client.delete(f'/api/attractions/{attraction_id}', headers=auth_headers)
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data['success'] is True
+    assert 'Attraction deleted successfully' in json_data['message']
