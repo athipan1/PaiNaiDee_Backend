@@ -4,3 +4,4 @@ psycopg2-binary
 python-dotenv
 Flask-SQLAlchemy
 pytest
+flask_jwt_extended>=4.6.0
