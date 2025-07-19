@@ -57,7 +57,7 @@ def test_add_attraction(client, app):
         test_user = User(username="testuser", password=hashed_password)
         db.session.add(test_user)
         db.session.commit()
-        access_token = create_access_token(identity=test_user.id)
+        access_token = create_access_token(identity=str(test_user.id))
 
     headers = {
         'Authorization': f'Bearer {access_token}'
@@ -72,43 +72,65 @@ def test_add_attraction(client, app):
     }
 
     rv = client.post('/api/attractions', headers=headers, data=data, content_type='multipart/form-data')
+    if rv.status_code == 422:
+        print(rv.get_json())
     assert rv.status_code == 201
     json_data = rv.get_json()
     assert json_data['success'] is True
     assert 'Attraction added successfully' in json_data['message']
     assert 'id' in json_data['data']
 
-def test_update_attraction(client, auth_headers, app):
+def test_update_attraction(client, app):
     """Test updating an attraction."""
     with app.app_context():
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        db.session.commit()
+        access_token = create_access_token(identity=str(test_user.id))
+
         # Add an attraction to update
         attraction = Attraction(name="Old Name", description="Old Description", province="Old Province")
         db.session.add(attraction)
         db.session.commit()
         attraction_id = attraction.id
 
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
     update_data = {
         "name": "New Name",
         "description": "New Description"
     }
 
-    rv = client.put(f'/api/attractions/{attraction_id}', headers=auth_headers, json=update_data)
+    rv = client.put(f'/api/attractions/{attraction_id}', headers=headers, json=update_data)
     assert rv.status_code == 200
     json_data = rv.get_json()
     assert json_data['success'] is True
     assert 'Attraction updated successfully' in json_data['message']
     assert json_data['data']['name'] == 'New Name'
 
-def test_delete_attraction(client, auth_headers, app):
+def test_delete_attraction(client, app):
     """Test deleting an attraction."""
     with app.app_context():
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        db.session.commit()
+        access_token = create_access_token(identity=str(test_user.id))
+
         # Add an attraction to delete
         attraction = Attraction(name="To Be Deleted", description="Delete me", province="Delete Province")
         db.session.add(attraction)
         db.session.commit()
         attraction_id = attraction.id
 
-    rv = client.delete(f'/api/attractions/{attraction_id}', headers=auth_headers)
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    rv = client.delete(f'/api/attractions/{attraction_id}', headers=headers)
     assert rv.status_code == 200
     json_data = rv.get_json()
     assert json_data['success'] is True
