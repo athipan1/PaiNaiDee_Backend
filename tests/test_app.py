@@ -17,9 +17,12 @@ def app():
 def client(app):
     return app.test_client()
 
+from flask_jwt_extended import JWTManager
+
 @pytest.fixture
 def auth_headers(app):
     with app.app_context():
+        JWTManager(app)
         hashed_password = generate_password_hash("testpassword")
         test_user = User(username="testuser", password=hashed_password)
         db.session.add(test_user)
@@ -47,8 +50,19 @@ def test_get_all_attractions(client):
     assert 'attractions' in json_data['data']
     assert 'pagination' in json_data['data']
 
-def test_add_attraction(client):
+def test_add_attraction(client, app):
     """Test adding a new attraction."""
+    with app.app_context():
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        db.session.commit()
+        access_token = create_access_token(identity=test_user.id)
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
     data = {
         'name': 'Test Temple',
         'description': 'A beautiful test temple.',
@@ -57,7 +71,7 @@ def test_add_attraction(client):
         'cover_image': (io.BytesIO(b"abcdef"), 'test.jpg')
     }
 
-    rv = client.post('/api/attractions', data=data, content_type='multipart/form-data')
+    rv = client.post('/api/attractions', headers=headers, data=data, content_type='multipart/form-data')
     assert rv.status_code == 201
     json_data = rv.get_json()
     assert json_data['success'] is True

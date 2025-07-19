@@ -48,7 +48,6 @@ def get_attraction_detail(attraction_id):
 @attractions_bp.route('/attractions', methods=['POST'])
 @jwt_required()
 def add_attraction():
-    print("Request files:", request.files)
     if 'cover_image' not in request.files:
         abort(400, description="Missing 'cover_image' in request.")
 
@@ -62,7 +61,6 @@ def add_attraction():
         file.save(upload_path)
 
         data = request.form
-        print("Request form data:", data)
         if not data.get('name'):
             abort(400, description="Missing 'name' in request body.")
         try:
@@ -85,8 +83,7 @@ def add_attraction():
             db.session.add(new_attraction)
             db.session.commit()
             return standardized_response(data={'id': new_attraction.id}, message="Attraction added successfully.", status_code=201)
-        except Exception as e:
-            print("Error adding attraction:", e)
+        except Exception:
             db.session.rollback()
             abort(500, description="Failed to add attraction.")
 
