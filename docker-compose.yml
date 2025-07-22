@@ -1,7 +1,8 @@
 version: '3.8'
 services:
-  web:
-    build: .
+  backend:
+    build:
+      context: ./PaiNaiDee_Backend
     ports:
       - "5000:5000"
     environment:
@@ -20,9 +21,9 @@ services:
         python migrate_image_urls.py &&
         python run.py
       "
+
   db:
     image: postgres:13
-    hostname: db
     environment:
       - POSTGRES_DB=painaidee_db
       - POSTGRES_USER=postgres
@@ -30,5 +31,14 @@ services:
       - POSTGRES_INITDB_ARGS=--encoding=UTF8
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
+  frontend:
+    build:
+      context: ./pai-naidee-ui-spark
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
