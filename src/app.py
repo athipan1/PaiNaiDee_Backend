@@ -8,6 +8,7 @@ from src.routes.attractions import attractions_bp
 from src.routes.reviews import reviews_bp
 from src.routes.auth import auth_bp
 from src.routes.booking import booking_bp
+from src.routes.search import search_bp  # <--- เพิ่มตรงนี้
 from src.utils import standardized_response
 from werkzeug.exceptions import HTTPException
 
@@ -32,6 +33,7 @@ def create_app(config_name):
     app.register_blueprint(reviews_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(booking_bp, url_prefix='/api')
+    app.register_blueprint(search_bp, url_prefix='/api')  # <--- เพิ่มตรงนี้
 
     @app.route('/')
     def home():
