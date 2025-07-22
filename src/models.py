@@ -37,6 +37,9 @@ class Attraction(db.Model):
     main_image_url = db.Column(db.String(255))
     image_urls = db.Column(JSONEncodedDict, nullable=True)
 
+    rooms = db.relationship('Room', backref='attraction', lazy=True)
+    cars = db.relationship('Car', backref='attraction', lazy=True)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -45,15 +48,18 @@ class Attraction(db.Model):
             'address': self.address,
             'province': self.province,
             'district': self.district,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
+            'location': {
+                'lat': self.latitude,
+                'lng': self.longitude
+            },
             'category': self.category,
             'opening_hours': self.opening_hours,
             'entrance_fee': self.entrance_fee,
             'contact_phone': self.contact_phone,
             'website': self.website,
-            'main_image_url': self.main_image_url,
-            'image_urls': self.image_urls,
+            'images': self.image_urls if self.image_urls else [],
+            'rooms': [room.to_dict() for room in self.rooms],
+            'cars': [car.to_dict() for car in self.cars]
         }
 
 class Review(db.Model):
@@ -87,4 +93,34 @@ class User(db.Model):
         return {
             'id': self.id,
             'username': self.username,
+        }
+
+class Room(db.Model):
+    __tablename__ = 'rooms'
+
+    id = db.Column(db.Integer, primary_key=True)
+    attraction_id = db.Column(db.Integer, db.ForeignKey('attractions.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'price': self.price
+        }
+
+class Car(db.Model):
+    __tablename__ = 'cars'
+
+    id = db.Column(db.Integer, primary_key=True)
+    attraction_id = db.Column(db.Integer, db.ForeignKey('attractions.id'), nullable=False)
+    brand = db.Column(db.String(100), nullable=False)
+    price_per_day = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'brand': self.brand,
+            'price_per_day': self.price_per_day
         }
