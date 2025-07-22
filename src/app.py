@@ -3,10 +3,11 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.config import config
-from src.models import db
+from src.models import db, User
 from src.routes.attractions import attractions_bp
 from src.routes.reviews import reviews_bp
 from src.routes.auth import auth_bp
+from src.routes.booking import booking_bp
 from src.utils import standardized_response
 from werkzeug.exceptions import HTTPException
 
@@ -22,9 +23,15 @@ def create_app(config_name):
     CORS(app, origins=["http://localhost:3000", "https://painaidee.com", "https://frontend-painaidee.web.app"])
     jwt = JWTManager(app)
 
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        identity = jwt_data["sub"]
+        return User.query.get(identity)
+
     app.register_blueprint(attractions_bp, url_prefix='/api')
     app.register_blueprint(reviews_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(booking_bp, url_prefix='/api')
 
     @app.route('/')
     def home():

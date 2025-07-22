@@ -1,6 +1,6 @@
 import os
 from flask import Blueprint, request, abort
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_current_user
 from werkzeug.utils import secure_filename
 from src.models import db, Attraction
 from src.utils import standardized_response
@@ -61,8 +61,8 @@ def add_attraction():
         file.save(upload_path)
 
         data = request.form
-        if not data.get('name'):
-            abort(400, description="Missing 'name' in request body.")
+        if not all(k in data for k in ('name', 'description', 'province', 'category')):
+            abort(400, description="Missing required fields.")
         try:
             new_attraction = Attraction(
                 name=data.get('name'),
