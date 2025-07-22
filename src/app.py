@@ -8,6 +8,7 @@ from src.routes.attractions import attractions_bp
 from src.routes.reviews import reviews_bp
 from src.routes.auth import auth_bp
 from src.routes.booking import booking_bp
+from src.routes.search import search_bp  # เพิ่มการ import blueprint สำหรับ search suggestions
 from src.utils import standardized_response
 from werkzeug.exceptions import HTTPException
 
@@ -20,7 +21,11 @@ def create_app(config_name):
         app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this in your production environment!
 
     db.init_app(app)
-    CORS(app, origins=["http://localhost:3000", "https://painaidee.com", "https://frontend-painaidee.web.app"])
+    CORS(app, origins=[
+        "http://localhost:3000",
+        "https://painaidee.com",
+        "https://frontend-painaidee.web.app"
+    ])
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
@@ -32,6 +37,7 @@ def create_app(config_name):
     app.register_blueprint(reviews_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(booking_bp, url_prefix='/api')
+    app.register_blueprint(search_bp, url_prefix='/api')  # เพิ่มการ register blueprint สำหรับ search suggestions
 
     @app.route('/')
     def home():
