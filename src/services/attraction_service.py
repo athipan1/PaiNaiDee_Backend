@@ -80,3 +80,12 @@ class AttractionService:
             abort(404, description="Attraction not found.")
         db.session.delete(attraction)
         db.session.commit()
+
+    @staticmethod
+    def get_attractions_by_category(category_name):
+        """Get attractions by category name using case-insensitive search"""
+        query = Attraction.query.filter(
+            Attraction.category.ilike(f"%{category_name}%")
+        )
+        attractions = query.order_by(Attraction.name).all()
+        return attractions

@@ -172,3 +172,101 @@ def test_rent_car(client, auth_headers, app):
     json_data = rv.get_json()
     assert json_data["success"] is True
     assert "Car rented successfully" in json_data["message"]
+
+
+def test_get_attractions_by_category(client, app):
+    """Test getting attractions by category - public access."""
+    with app.app_context():
+        # Create test attractions with different categories
+        attraction1 = Attraction(
+            name="หาดบางแสน",
+            province="ชลบุรี",
+            category="ชายหาด",
+            main_image_url="https://example.com/beach1.jpg"
+        )
+        attraction2 = Attraction(
+            name="หาดแม่รำพึง",
+            province="ระยอง", 
+            category="ชายหาด",
+            main_image_url="https://example.com/beach2.jpg"
+        )
+        attraction3 = Attraction(
+            name="วัดพระแก้ว",
+            province="กรุงเทพฯ",
+            category="วัด",
+            main_image_url="https://example.com/temple1.jpg"
+        )
+        
+        db.session.add_all([attraction1, attraction2, attraction3])
+        db.session.commit()
+
+    # Test getting beaches
+    rv = client.get("/api/attractions/category/ชายหาด")
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data["success"] is True
+    assert len(json_data["data"]) == 2
+    
+    # Verify response structure
+    beach_data = json_data["data"]
+    for item in beach_data:
+        assert "id" in item
+        assert "name" in item
+        assert "province" in item
+        assert "thumbnail" in item
+        
+    # Verify specific data
+    beach_names = [item["name"] for item in beach_data]
+    assert "หาดบางแสน" in beach_names
+    assert "หาดแม่รำพึง" in beach_names
+
+
+def test_get_attractions_by_category_case_insensitive(client, app):
+    """Test category search is case insensitive."""
+    with app.app_context():
+        attraction = Attraction(
+            name="วัดอรุณ",
+            province="กรุงเทพฯ",
+            category="วัด",
+            main_image_url="https://example.com/temple.jpg"
+        )
+        db.session.add(attraction)
+        db.session.commit()
+
+    # Test with different case
+    rv = client.get("/api/attractions/category/วัด")
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data["success"] is True
+    assert len(json_data["data"]) == 1
+    assert json_data["data"][0]["name"] == "วัดอรุณ"
+
+
+def test_get_attractions_by_category_empty_result(client):
+    """Test category endpoint with no matching results."""
+    rv = client.get("/api/attractions/category/nonexistent")
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data["success"] is True
+    assert len(json_data["data"]) == 0
+
+
+def test_get_attractions_by_category_partial_match(client, app):
+    """Test category search with partial matching."""
+    with app.app_context():
+        attraction = Attraction(
+            name="ภูเขาไฟ",
+            province="เชียงใหม่",
+            category="ภูเขาและป่าไผ่",
+            main_image_url="https://example.com/mountain.jpg"
+        )
+        db.session.add(attraction)
+        db.session.commit()
+
+    # Test partial match
+    rv = client.get("/api/attractions/category/ภูเขา")
+    assert rv.status_code == 200
+    json_data = rv.get_json()
+    assert json_data["success"] is True
+    assert len(json_data["data"]) == 1
+    assert json_data["data"][0]["name"] == "ภูเขาไฟ"

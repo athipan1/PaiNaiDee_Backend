@@ -106,3 +106,18 @@ def delete_attraction(attraction_id):
         )
     except Exception as e:
         abort(500, description=f"Failed to delete attraction. Error: {e}")
+
+
+@attractions_bp.route("/attractions/category/<category_name>", methods=["GET"])
+def get_attractions_by_category(category_name):
+    """Get attractions by category name - public access, no authentication required"""
+    try:
+        attractions = AttractionService.get_attractions_by_category(category_name)
+        results = [attraction.to_category_dict() for attraction in attractions]
+        
+        return standardized_response(
+            data=results,
+            message=f"Attractions in category '{category_name}' retrieved successfully.",
+        )
+    except Exception as e:
+        abort(500, description=f"Failed to retrieve attractions by category. Error: {e}")

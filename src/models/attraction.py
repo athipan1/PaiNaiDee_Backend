@@ -42,3 +42,12 @@ class Attraction(db.Model):
             "rooms": [room.to_dict() for room in self.rooms],
             "cars": [car.to_dict() for car in self.cars],
         }
+
+    def to_category_dict(self):
+        """Return simplified dict for category endpoint response"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "province": self.province,
+            "thumbnail": self.main_image_url,
+        }
