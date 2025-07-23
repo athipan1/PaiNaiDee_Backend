@@ -4,7 +4,7 @@ from src.models import db, Review, User
 class ReviewService:
     @staticmethod
     def add_review(user_id, data):
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return None, "User not found."
 

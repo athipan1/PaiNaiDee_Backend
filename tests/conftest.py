@@ -36,7 +36,7 @@ def test_user(app):
 @pytest.fixture(scope="function")
 def auth_headers(app, test_user):
     with app.app_context():
-        user = User.query.get(test_user.id)
+        user = db.session.get(User, test_user.id)
         access_token = create_access_token(identity=str(user.id))
         headers = {"Authorization": f"Bearer {access_token}"}
         return headers
