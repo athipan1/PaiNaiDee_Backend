@@ -28,9 +28,11 @@ class AttractionService:
 
     @staticmethod
     def get_attraction_by_id(attraction_id):
-        return Attraction.query.get_or_404(
-            attraction_id, description="Attraction not found."
-        )
+        attraction = db.session.get(Attraction, attraction_id)
+        if not attraction:
+            from flask import abort
+            abort(404, description="Attraction not found.")
+        return attraction
 
     @staticmethod
     def add_attraction(data, file):
@@ -60,9 +62,10 @@ class AttractionService:
 
     @staticmethod
     def update_attraction(attraction_id, data):
-        attraction = Attraction.query.get_or_404(
-            attraction_id, description="Attraction not found."
-        )
+        attraction = db.session.get(Attraction, attraction_id)
+        if not attraction:
+            from flask import abort
+            abort(404, description="Attraction not found.")
         for key, value in data.items():
             if hasattr(attraction, key):
                 setattr(attraction, key, value)
@@ -71,8 +74,9 @@ class AttractionService:
 
     @staticmethod
     def delete_attraction(attraction_id):
-        attraction = Attraction.query.get_or_404(
-            attraction_id, description="Attraction not found."
-        )
+        attraction = db.session.get(Attraction, attraction_id)
+        if not attraction:
+            from flask import abort
+            abort(404, description="Attraction not found.")
         db.session.delete(attraction)
         db.session.commit()

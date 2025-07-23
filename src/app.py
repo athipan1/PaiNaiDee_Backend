@@ -36,7 +36,7 @@ def create_app(config_name):
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data["sub"]
-        return User.query.get(identity)
+        return db.session.get(User, identity)
 
     app.register_blueprint(attractions_bp, url_prefix="/api")
     app.register_blueprint(reviews_bp, url_prefix="/api")
