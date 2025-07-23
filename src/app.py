@@ -8,6 +8,7 @@ from src.routes.attractions import attractions_bp
 from src.routes.reviews import reviews_bp
 from src.routes.auth import auth_bp
 from src.routes.booking import booking_bp
+from src.routes.search import search_bp
 from src.utils.response import standardized_response
 from src.errors import register_error_handlers
 
@@ -42,10 +43,30 @@ def create_app(config_name):
     app.register_blueprint(reviews_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(booking_bp, url_prefix="/api")
+    app.register_blueprint(search_bp, url_prefix="/api")
 
     @app.route("/")
     def home():
         return standardized_response(message="Welcome to Pai Nai Dii Backend!")
+
+    @app.route("/health")
+    def health_check():
+        """Health check endpoint for frontend connectivity verification"""
+        return standardized_response(
+            data={
+                "status": "healthy",
+                "version": "1.0.0",
+                "cors_enabled": True,
+                "endpoints": {
+                    "auth": "/api/auth/login, /api/auth/register",
+                    "attractions": "/api/attractions",
+                    "booking": "/api/book-room, /api/rent-car",
+                    "reviews": "/api/reviews",
+                    "search": "/api/search/suggestions"
+                }
+            },
+            message="API is running and ready for frontend connections"
+        )
 
     register_error_handlers(app)
 
