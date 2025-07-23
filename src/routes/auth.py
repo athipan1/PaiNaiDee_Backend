@@ -1,43 +1,47 @@
 from flask import Blueprint, request, abort
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
-from src.models import db, User
-from src.utils import standardized_response
+from src.services.auth_service import AuthService
+from src.utils.response import standardized_response
+from src.schemas.auth import RegisterSchema, LoginSchema
+from marshmallow import ValidationError
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route('/register', methods=['POST'])
+
+@auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        abort(400, description="Missing username or password.")
+    try:
+        validated_data = RegisterSchema().load(data)
+    except ValidationError as err:
+        return standardized_response(data=err.messages, success=False, status_code=400)
 
-    username = data['username']
-    password = data['password']
+    username = validated_data["username"]
+    password = validated_data["password"]
 
-    if User.query.filter_by(username=username).first():
-        abort(409, description="User already exists.")
+    user, message = AuthService.register_user(username, password)
 
-    hashed_password = generate_password_hash(password)
-    new_user = User(username=username, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
+    if not user:
+        abort(409, description=message)
 
-    return standardized_response(message="User created successfully.", status_code=201)
+    return standardized_response(message=message, status_code=201)
 
-@auth_bp.route('/login', methods=['POST'])
+
+@auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        abort(400, description="Missing username or password.")
+    try:
+        validated_data = LoginSchema().load(data)
+    except ValidationError as err:
+        return standardized_response(data=err.messages, success=False, status_code=400)
 
-    username = data['username']
-    password = data['password']
+    username = validated_data["username"]
+    password = validated_data["password"]
 
-    user = User.query.filter_by(username=username).first()
+    access_token = AuthService.login_user(username, password)
 
-    if not user or not check_password_hash(user.password, password):
+    if not access_token:
         abort(401, description="Invalid credentials.")
 
-    access_token = create_access_token(identity=user.id)
-    return standardized_response(data={'access_token': access_token}, message="Login successful.")
+    return standardized_response(
+        data={"access_token": access_token}, message="Login successful."
+    )
