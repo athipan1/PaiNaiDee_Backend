@@ -40,5 +40,14 @@ services:
     depends_on:
       - backend
 
+  map3d:
+    build:
+      context: ./PaiNaiDee_map_3D
+      dockerfile: dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
