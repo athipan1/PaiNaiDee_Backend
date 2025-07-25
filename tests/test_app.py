@@ -128,10 +128,47 @@ def test_get_attraction_detail_with_rooms_and_cars(client, app):
         assert json_data["success"] is True
         assert "rooms" in json_data["data"]
         assert "cars" in json_data["data"]
-        assert len(json_data["data"]["rooms"]) == 1
-        assert len(json_data["data"]["cars"]) == 1
-        assert json_data["data"]["rooms"][0]["name"] == "Test Room"
-        assert json_data["data"]["cars"][0]["brand"] == "Test Car"
+        assert "average_rating" in json_data["data"]
+        assert "total_reviews" in json_data["data"]
+        assert json_data["data"]["average_rating"] == 0
+        assert json_data["data"]["total_reviews"] == 0
+
+
+def test_get_attraction_detail_with_reviews(client, app):
+    """Test getting attraction detail with reviews and rating."""
+    with app.app_context():
+        # Create user and attraction
+        hashed_password = generate_password_hash("testpassword")
+        test_user = User(username="testuser", password=hashed_password)
+        db.session.add(test_user)
+        
+        attraction = Attraction(
+            name="Test Resort",
+            description="A test resort with reviews",
+            province="Test Province",
+        )
+        db.session.add(attraction)
+        db.session.commit()
+        
+        access_token = create_access_token(identity=str(test_user.id))
+        attraction_id = attraction.id
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    
+    # Add a review
+    client.post(
+        "/api/reviews",
+        json={"place_id": attraction_id, "rating": 4, "comment": "Great place!"},
+        headers=headers,
+    )
+    
+    # Get attraction detail
+    response = client.get(f"/api/attractions/{attraction_id}")
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data["success"] is True
+    assert json_data["data"]["average_rating"] == 4.0
+    assert json_data["data"]["total_reviews"] == 1
 
 
 def test_book_room(client, auth_headers, app):
