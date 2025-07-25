@@ -9,3 +9,4 @@ from .room import Room  # noqa
 from .car import Car  # noqa
 from .room_booking import RoomBooking  # noqa
 from .car_rental import CarRental  # noqa
+from .video_post import VideoPost  # noqa
