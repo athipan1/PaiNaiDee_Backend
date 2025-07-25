@@ -22,5 +22,5 @@ class AuthService:
         if not user or not check_password_hash(user.password, password):
             return None
 
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         return access_token

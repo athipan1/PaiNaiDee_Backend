@@ -3,3 +3,10 @@ test_venv/
 test_run/
 __pycache__/
 *.pyc
+uploads/videos/*.mp4
+uploads/videos/*.avi
+uploads/videos/*.mov
+uploads/videos/*.wmv
+uploads/videos/*.flv
+uploads/videos/*.webm
+uploads/videos/*.mkv

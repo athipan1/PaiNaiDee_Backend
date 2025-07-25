@@ -9,6 +9,7 @@ from src.routes.reviews import reviews_bp
 from src.routes.auth import auth_bp
 from src.routes.booking import booking_bp
 from src.routes.search import search_bp
+from src.routes.videos import videos_bp
 from src.utils.response import standardized_response
 from src.errors import register_error_handlers
 
@@ -37,13 +38,14 @@ def create_app(config_name):
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data["sub"]
-        return db.session.get(User, identity)
+        return db.session.get(User, int(identity))
 
     app.register_blueprint(attractions_bp, url_prefix="/api")
     app.register_blueprint(reviews_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(booking_bp, url_prefix="/api")
     app.register_blueprint(search_bp, url_prefix="/api")
+    app.register_blueprint(videos_bp, url_prefix="/api")
 
     @app.route("/")
     def home():
