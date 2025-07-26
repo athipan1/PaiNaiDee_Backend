@@ -43,6 +43,12 @@ class Attraction(db.Model):
 
     def to_dict(self):
         review_stats = self.get_review_stats()
+        
+        # Get place details if available
+        place_detail = None
+        if hasattr(self, 'place_details') and self.place_details:
+            place_detail = self.place_details[0].to_dict() if self.place_details else None
+        
         return {
             "id": self.id,
             "name": self.name,
@@ -60,7 +66,8 @@ class Attraction(db.Model):
             "rooms": [room.to_dict() for room in self.rooms],
             "cars": [car.to_dict() for car in self.cars],
             "average_rating": review_stats["average_rating"],
-            "total_reviews": review_stats["total_reviews"]
+            "total_reviews": review_stats["total_reviews"],
+            "place_detail": place_detail
         }
 
     def to_category_dict(self):
