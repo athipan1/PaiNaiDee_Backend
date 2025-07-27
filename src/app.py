@@ -32,6 +32,8 @@ def create_app(config_name):
             "https://painaidee.com",
             "https://frontend-painaidee.web.app",
         ],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        headers=["Content-Type", "Authorization"],
     )
     jwt = JWTManager(app)
 
