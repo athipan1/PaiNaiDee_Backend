@@ -10,6 +10,65 @@ attractions_bp = Blueprint("attractions", __name__)
 
 @attractions_bp.route("/attractions", methods=["GET"])
 def get_all_attractions():
+    """
+    Get all attractions with filtering and pagination
+    ---
+    tags:
+      - Attractions
+    parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+        description: Page number for pagination
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+        description: Number of items per page
+      - name: q
+        in: query
+        type: string
+        description: Search term for attraction name or description
+      - name: province
+        in: query
+        type: string
+        description: Filter by province
+      - name: category
+        in: query
+        type: string
+        description: Filter by category
+    responses:
+      200:
+        description: List of attractions retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            message:
+              type: string
+            data:
+              type: object
+              properties:
+                attractions:
+                  type: array
+                  items:
+                    type: object
+                pagination:
+                  type: object
+                  properties:
+                    total_pages:
+                      type: integer
+                    current_page:
+                      type: integer
+                    total_items:
+                      type: integer
+                    has_next:
+                      type: boolean
+                    has_prev:
+                      type: boolean
+    """
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     q = request.args.get("q")
@@ -37,6 +96,78 @@ def get_all_attractions():
 
 @attractions_bp.route("/attractions/<int:attraction_id>", methods=["GET"])
 def get_attraction_detail(attraction_id):
+    """
+    Get detailed information about a specific attraction
+    ---
+    tags:
+      - Attractions
+    parameters:
+      - name: attraction_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the attraction to retrieve
+    responses:
+      200:
+        description: Attraction details retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            message:
+              type: string
+            data:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                description:
+                  type: string
+                address:
+                  type: string
+                province:
+                  type: string
+                district:
+                  type: string
+                location:
+                  type: object
+                  properties:
+                    lat:
+                      type: number
+                    lng:
+                      type: number
+                category:
+                  type: string
+                opening_hours:
+                  type: string
+                entrance_fee:
+                  type: string
+                contact_phone:
+                  type: string
+                website:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                rooms:
+                  type: array
+                  items:
+                    type: object
+                cars:
+                  type: array
+                  items:
+                    type: object
+                average_rating:
+                  type: number
+                total_reviews:
+                  type: integer
+      404:
+        description: Attraction not found
+    """
     attraction = AttractionService.get_attraction_by_id(attraction_id)
     return standardized_response(
         data=attraction.to_dict(),

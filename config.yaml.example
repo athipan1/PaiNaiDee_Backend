@@ -1,0 +1,129 @@
+# PaiNaiDee Backend Configuration
+# Copy this file to config.yaml and modify as needed
+
+# Development Environment
+development:
+  # Flask Configuration
+  secret_key: "your-development-secret-key"
+  flask_env: "development"
+  
+  # Database Configuration
+  database:
+    user: "postgres"
+    password: "your-db-password"
+    host: "localhost"
+    port: 5432
+    name: "painaidee_db"
+  
+  # API Configuration
+  api:
+    version: "v1"
+    base_url: "http://localhost:5000"
+    jwt_secret_key: "your-jwt-secret-key"
+  
+  # CORS Configuration
+  cors:
+    origins:
+      - "http://localhost:3000"
+      - "http://localhost:3001"
+      - "http://127.0.0.1:3000"
+  
+  # File Upload
+  upload:
+    max_size_mb: 50
+    allowed_extensions: ["jpg", "jpeg", "png", "gif"]
+
+# Staging Environment  
+staging:
+  # Flask Configuration
+  secret_key: "your-staging-secret-key"
+  flask_env: "staging"
+  
+  # Database Configuration
+  database:
+    user: "postgres"
+    password: "your-staging-db-password"
+    host: "staging-db-host"
+    port: 5432
+    name: "painaidee_staging"
+  
+  # API Configuration
+  api:
+    version: "v1"
+    base_url: "https://staging-api.painaidee.com"
+    jwt_secret_key: "your-staging-jwt-secret-key"
+  
+  # CORS Configuration
+  cors:
+    origins:
+      - "https://staging.painaidee.com"
+      - "https://staging-frontend-painaidee.web.app"
+  
+  # File Upload
+  upload:
+    max_size_mb: 50
+    allowed_extensions: ["jpg", "jpeg", "png", "gif"]
+
+# Production Environment
+production:
+  # Flask Configuration
+  secret_key: "your-production-secret-key"
+  flask_env: "production"
+  
+  # Database Configuration
+  database:
+    user: "postgres"
+    password: "your-production-db-password"
+    host: "production-db-host"
+    port: 5432
+    name: "painaidee_db"
+  
+  # API Configuration
+  api:
+    version: "v1"
+    base_url: "https://api.painaidee.com"
+    jwt_secret_key: "your-production-jwt-secret-key"
+  
+  # CORS Configuration
+  cors:
+    origins:
+      - "https://painaidee.com"
+      - "https://frontend-painaidee.web.app"
+      - "https://app.painaidee.com"
+  
+  # File Upload
+  upload:
+    max_size_mb: 50
+    allowed_extensions: ["jpg", "jpeg", "png", "gif"]
+  
+  # Security
+  security:
+    ssl_required: true
+    csrf_protection: true
+
+# Testing Environment
+testing:
+  # Flask Configuration
+  secret_key: "test-secret-key"
+  flask_env: "testing"
+  
+  # Database Configuration
+  database:
+    type: "sqlite"
+    path: ":memory:"
+  
+  # API Configuration
+  api:
+    version: "v1"
+    base_url: "http://localhost:5000"
+    jwt_secret_key: "test-jwt-secret-key"
+  
+  # CORS Configuration
+  cors:
+    origins:
+      - "*"  # Allow all origins for testing
+  
+  # File Upload
+  upload:
+    max_size_mb: 1
+    allowed_extensions: ["jpg", "png"]

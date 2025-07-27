@@ -11,6 +11,59 @@ booking_bp = Blueprint("booking", __name__)
 @booking_bp.route("/book-room", methods=["POST"])
 @jwt_required()
 def book_room():
+    """
+    Book a room for specific dates
+    ---
+    tags:
+      - Booking
+    security:
+      - JWT: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - room_id
+            - date_start
+            - date_end
+          properties:
+            room_id:
+              type: integer
+              description: ID of the room to book
+            date_start:
+              type: string
+              format: date
+              description: Start date of booking (YYYY-MM-DD)
+            date_end:
+              type: string
+              format: date
+              description: End date of booking (YYYY-MM-DD)
+    responses:
+      201:
+        description: Room booked successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            message:
+              type: string
+      400:
+        description: Invalid booking data or room not available
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            message:
+              type: string
+            data:
+              type: object
+      401:
+        description: Authentication required
+    """
     data = request.get_json()
     try:
         validated_data = RoomBookingSchema().load(data)
