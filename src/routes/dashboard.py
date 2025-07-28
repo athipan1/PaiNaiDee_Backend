@@ -39,7 +39,12 @@ def parse_query_params():
             except ValueError:
                 return None, f"Invalid end_date format: {end_date_str}"
         
-        query_params['period'] = request.args.get('period', 'day')
+        # Validate period parameter
+        period = request.args.get('period', 'day')
+        if period not in ['day', 'week', 'month']:
+            return None, f"Invalid period '{period}'. Must be one of: day, week, month"
+        query_params['period'] = period
+        
         query_params['limit'] = request.args.get('limit', 10, type=int)
         
         # Just return the params without schema validation for now to simplify
@@ -102,9 +107,8 @@ def get_endpoints_summary():
             end_date=params.get('end_date')
         )
         
-        schema = EndpointSummarySchema(many=True)
         return standardized_response(
-            data=schema.dump(endpoints_data),
+            data=endpoints_data,
             message="Endpoints summary retrieved successfully"
         )
     except Exception as e:
@@ -136,9 +140,8 @@ def get_requests_by_period():
             end_date=params.get('end_date')
         )
         
-        schema = RequestCountPeriodSchema(many=True)
         return standardized_response(
-            data=schema.dump(period_data),
+            data=period_data,
             message="Request count by period retrieved successfully"
         )
     except Exception as e:
@@ -169,9 +172,8 @@ def get_status_code_distribution():
             end_date=params.get('end_date')
         )
         
-        schema = StatusCodeDistributionSchema(many=True)
         return standardized_response(
-            data=schema.dump(status_data),
+            data=status_data,
             message="Status code distribution retrieved successfully"
         )
     except Exception as e:
@@ -203,9 +205,8 @@ def get_top_source_ips():
             end_date=params.get('end_date')
         )
         
-        schema = SourceIPSchema(many=True)
         return standardized_response(
-            data=schema.dump(ip_data),
+            data=ip_data,
             message="Top source IPs retrieved successfully"
         )
     except Exception as e:
@@ -236,9 +237,8 @@ def get_response_time_analytics():
             end_date=params.get('end_date')
         )
         
-        schema = ResponseTimeAnalyticsSchema()
         return standardized_response(
-            data=schema.dump(response_time_data),
+            data=response_time_data,
             message="Response time analytics retrieved successfully"
         )
     except Exception as e:

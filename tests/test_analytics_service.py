@@ -231,7 +231,7 @@ class TestAnalyticsService:
             result = AnalyticsService.get_system_overview()
             
             assert result['total_requests'] == 3
-            assert result['unique_endpoints'] == 2  # /api/attractions and /api/reviews
+            assert result['unique_endpoints'] == 3  # /api/attractions, /api/reviews, and /api/attractions/:id
             assert result['unique_source_ips'] == 2
             assert result['error_rate'] == 66.67  # 2 errors out of 3 requests
             assert 'latest_request' in result
