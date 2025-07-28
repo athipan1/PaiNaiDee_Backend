@@ -10,7 +10,9 @@ from src.routes.auth import auth_bp
 from src.routes.booking import booking_bp
 from src.routes.search import search_bp
 from src.routes.videos import videos_bp
+from src.routes.dashboard import dashboard_bp
 from src.utils.response import standardized_response
+from src.utils.analytics_middleware import APIAnalyticsMiddleware
 from src.errors import register_error_handlers
 
 
@@ -48,6 +50,11 @@ def create_app(config_name):
     app.register_blueprint(booking_bp, url_prefix="/api")
     app.register_blueprint(search_bp, url_prefix="/api")
     app.register_blueprint(videos_bp, url_prefix="/api")
+    app.register_blueprint(dashboard_bp, url_prefix="/api")
+
+    # Initialize analytics middleware
+    analytics_middleware = APIAnalyticsMiddleware()
+    analytics_middleware.init_app(app)
 
     @app.route("/")
     def home():
