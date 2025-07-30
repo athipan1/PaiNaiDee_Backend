@@ -12,10 +12,10 @@ def register_error_handlers(app):
     @app.errorhandler(Exception)
     def handle_generic_exception(e):
         # For production, you might want to log the error
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         return standardized_response(
-            message=f"An unexpected error occurred: {str(e)}",
+            message="An unexpected error occurred.",
             success=False,
             status_code=500,
         )

@@ -78,6 +78,13 @@ class APIAnalyticsMiddleware:
                 db.session.rollback()
             except:
                 pass
+            
+            # Try to create tables if they don't exist
+            try:
+                from src.models.api_analytics import APIAnalytics
+                db.create_all()
+            except:
+                pass
         
         return response
     
