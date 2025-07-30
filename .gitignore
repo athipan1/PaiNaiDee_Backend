@@ -2,6 +2,7 @@ venv/
 test_venv/
 test_run/
 test_fix_venv/
+test_env/
 __pycache__/
 *.pyc
 uploads/videos/*.mp4
