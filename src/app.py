@@ -52,9 +52,9 @@ def create_app(config_name):
     app.register_blueprint(videos_bp, url_prefix="/api")
     app.register_blueprint(dashboard_bp, url_prefix="/api")
 
-    # Initialize analytics middleware
-    analytics_middleware = APIAnalyticsMiddleware()
-    analytics_middleware.init_app(app)
+    # Initialize analytics middleware (temporarily disabled for testing)
+    # analytics_middleware = APIAnalyticsMiddleware()
+    # analytics_middleware.init_app(app)
 
     @app.route("/")
     def home():
