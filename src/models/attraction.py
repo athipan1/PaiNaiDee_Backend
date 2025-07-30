@@ -56,7 +56,8 @@ class Attraction(db.Model):
             "entrance_fee": self.entrance_fee,
             "contact_phone": self.contact_phone,
             "website": self.website,
-            "images": self.image_urls if self.image_urls else [],
+            "image_url": self.main_image_url,  # Main image URL as requested
+            "images": self.image_urls if self.image_urls else [],  # Additional images array
             "rooms": [room.to_dict() for room in self.rooms],
             "cars": [car.to_dict() for car in self.cars],
             "average_rating": review_stats["average_rating"],
