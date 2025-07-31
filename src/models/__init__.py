@@ -11,3 +11,4 @@ from .room_booking import RoomBooking  # noqa
 from .car_rental import CarRental  # noqa
 from .video_post import VideoPost  # noqa
 from .api_analytics import APIAnalytics  # noqa
+from .external_data import DataSource, ManualUpdate, ScheduledUpdate  # noqa
