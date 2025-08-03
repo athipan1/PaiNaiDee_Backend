@@ -5,6 +5,17 @@
 [![Flask](https://img.shields.io/badge/flask-3.1.1-blue.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## 🚀 Quick Start | เริ่มต้นอย่างรวดเร็ว
+
+**Deploy instantly with one click | ติดตั้งทันทีด้วยการคลิกเดียว:**
+
+| **🌟 Permanent Deploy<br/>ติดตั้งแบบถาวร** | **🔬 Test Deploy<br/>ทดสอบชั่วคราว** |
+|:---:|:---:|
+| [![Deploy to HF Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb) |
+| **Hugging Face Spaces**<br/>Always online • Free hosting<br/>เออนไลน์ตลอดเวลา • โฮสต์ฟรี | **Google Colab + ngrok**<br/>Instant testing • No setup<br/>ทดสอบทันที • ไม่ต้องติดตั้ง |
+
+---
+
 PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive backend API for a tourism application that helps users discover, explore, and book attractions in Thailand. Built with Flask and PostgreSQL, it provides a robust foundation for travel applications with features including attraction management, user reviews, booking systems, and real-time analytics.
 
 ## 🌟 Features
@@ -51,45 +62,51 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
                     └───────────────────────────┘
 ```
 
-## 🚀 Quick Deploy
+## 📖 Deployment Guide | คู่มือการติดตั้ง
 
-Deploy PaiNaiDee Backend instantly with one click:
+Choose your preferred deployment method | เลือกวิธีการติดตั้งที่ต้องการ:
 
-### 🌟 Permanent Deployment
-[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/new-space)
+### 🌟 Permanent Deployment | การติดตั้งแบบถาวร
 
-**Deploy permanently on Hugging Face Spaces**
-- ✅ **One-click deployment** - No setup required
-- ✅ **Always online** - Permanent public URL  
-- ✅ **Free hosting** - No cost for basic usage
-- ✅ **Auto-scaling** - Handles traffic automatically
-- ✅ **Sample data included** - Ready to test immediately
+**Deploy permanently on Hugging Face Spaces | ติดตั้งแบบถาวรบน Hugging Face Spaces**
+- ✅ **One-click deployment | ติดตั้งคลิกเดียว** - No setup required | ไม่ต้องตั้งค่าอะไร
+- ✅ **Always online | ออนไลน์ตลอดเวลา** - Permanent public URL | URL สาธารณะแบบถาวร 
+- ✅ **Free hosting | โฮสต์ฟรี** - No cost for basic usage | ไม่มีค่าใช้จ่ายสำหรับการใช้งานพื้นฐาน
+- ✅ **Auto-scaling | ปรับขนาดอัตโนมัติ** - Handles traffic automatically | จัดการปริมาณผู้ใช้อัตโนมัติ
+- ✅ **Sample data included | ข้อมูลตัวอย่างรวมอยู่** - Ready to test immediately | พร้อมทดสอบทันที
 
-**How to deploy:**
-1. Click the "Deploy to Spaces" button above
-2. Sign up/login to Hugging Face (free)
-3. Choose "Clone a repository" and enter: `https://github.com/athipan1/PaiNaiDee_Backend`
-4. Set SDK to "Docker" and choose a name for your Space
-5. Click "Create Space"
-6. Wait 2-3 minutes for deployment
-7. Your API will be live at `https://your-space-name.hf.space`
+**How to deploy | วิธีการติดตั้ง:**
+1. **Click** the "Deploy to Spaces" button above | **คลิก** ปุ่ม "Deploy to Spaces" ด้านบน
+2. **Sign up/login** to Hugging Face (free) | **สมัครสมาชิก/เข้าสู่ระบบ** Hugging Face (ฟรี)
+3. **Repository will be pre-filled** - Just choose a name for your Space | **ข้อมูล Repository จะถูกกรอกให้อัตโนมัติ** - เพียงตั้งชื่อ Space ของคุณ
+4. **Set SDK to "Docker"** (should be auto-selected) | **ตั้งค่า SDK เป็น "Docker"** (น่าจะเลือกอัตโนมัติ)
+5. **Click "Create Space"** | **คลิก "Create Space"**
+6. **Wait 2-3 minutes** for deployment | **รอ 2-3 นาที** สำหรับการติดตั้ง
+7. **Your API will be live** at `https://your-space-name.hf.space` | **API ของคุณจะพร้อมใช้งาน** ที่ `https://your-space-name.hf.space`
 
-### 🔬 Temporary Testing
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb)
+### 🔬 Temporary Testing | การทดสอบแบบชั่วคราว
 
-**Run temporarily on Google Colab with ngrok tunnel**
-- ✅ **Instant testing** - No account required
-- ✅ **Full database** - SQLite with sample data
-- ✅ **Public URL** - Access from anywhere via ngrok
-- ✅ **Interactive notebook** - Step-by-step guided setup
-- ⚠️ **Temporary** - Stops when notebook closes
+**Run temporarily on Google Colab with ngrok tunnel | รันแบบชั่วคราวบน Google Colab ผ่าน ngrok tunnel**
+- ✅ **Instant testing | ทดสอบทันที** - No account required | ไม่ต้องสร้างบัญชี
+- ✅ **Full database | ฐานข้อมูลครบถ้วน** - SQLite with sample data | SQLite พร้อมข้อมูลตัวอย่าง
+- ✅ **Public URL | URL สาธารณะ** - Access from anywhere via ngrok | เข้าถึงได้จากทุกที่ผ่าน ngrok
+- ✅ **Interactive notebook | โน้ตบุ๊กแบบโต้ตอบ** - Step-by-step guided setup | การติดตั้งแบบมีคำแนะนำทีละขั้นตอน
+- ⚠️ **Temporary | ชั่วคราว** - Stops when notebook closes | หยุดทำงานเมื่อปิดโน้ตบุ๊ก
 
-**How to run:**
-1. Click the "Open in Colab" button above  
-2. Run all cells (Runtime → Run all)
-3. Copy the ngrok URL from the output
-4. Use the URL to test the API
-5. Server runs until you close the notebook
+**How to run | วิธีการรัน:**
+1. **Click** the "Open in Colab" button above | **คลิก** ปุ่ม "Open in Colab" ด้านบน
+2. **Run all cells** (Runtime → Run all) | **รันทุกเซลล์** (Runtime → Run all)
+3. **Copy the ngrok URL** from the output | **คัดลอก ngrok URL** จากผลลัพธ์
+4. **Use the URL** to test the API | **ใช้ URL** เพื่อทดสอบ API
+5. **Server runs** until you close the notebook | **เซิร์ฟเวอร์ทำงาน** จนกว่าคุณจะปิดโน้ตบุ๊ก
+
+**💡 Quick Test Examples | ตัวอย่างการทดสอบอย่างรวดเร็ว:**
+```bash
+# Replace 'your-url' with your actual ngrok URL | แทนที่ 'your-url' ด้วย ngrok URL จริงของคุณ
+curl https://your-url.ngrok.io/api/attractions
+curl https://your-url.ngrok.io/api/search?q=วัด
+curl https://your-url.ngrok.io/health
+```
 
 ---
 
@@ -265,90 +282,102 @@ curl "http://localhost:5000/api/search?q=temple&location=Bangkok"
 
 For complete API documentation, see the [API Reference](docs/api-reference.md) (when available).
 
-## 🌐 Deployment Options
+## 🌐 Deployment Options | ตัวเลือกการติดตั้ง
 
-### 🌟 Hugging Face Spaces (Recommended for Demo/Production)
+### 🌟 Hugging Face Spaces (Recommended for Demo/Production) | แนะนำสำหรับ Demo/Production
 
-Hugging Face Spaces provides free, permanent hosting for your PaiNaiDee Backend API.
+Hugging Face Spaces provides free, permanent hosting for your PaiNaiDee Backend API. | Hugging Face Spaces ให้บริการโฮสต์ฟรีแบบถาวรสำหรับ PaiNaiDee Backend API ของคุณ
 
-#### ✅ Advantages:
-- **Always online** - 24/7 availability with public URL
-- **No server management** - Automatic scaling and maintenance
-- **Free hosting** - No cost for basic usage  
-- **Easy sharing** - Share your API with a simple URL
-- **Version control** - Git-based deployment and updates
+#### ✅ Advantages | ข้อดี:
+- **Always online | ออนไลน์ตลอดเวลา** - 24/7 availability with public URL | พร้อมใช้งาน 24/7 พร้อม URL สาธารณะ
+- **No server management | ไม่ต้องจัดการเซิร์ฟเวอร์** - Automatic scaling and maintenance | ปรับขนาดและบำรุงรักษาอัตโนมัติ
+- **Free hosting | โฮสต์ฟรี** - No cost for basic usage | ไม่มีค่าใช้จ่ายสำหรับการใช้งานพื้นฐาน
+- **Easy sharing | แชร์ง่าย** - Share your API with a simple URL | แชร์ API ของคุณด้วย URL เดียว
+- **Version control | ควบคุมเวอร์ชัน** - Git-based deployment and updates | การติดตั้งและอัปเดตผ่าน Git
 
-#### 🚀 Quick Deploy Steps:
-1. **Click Deploy Button**: Use the deploy button in the Quick Deploy section above
-2. **Create Account**: Sign up for free Hugging Face account if needed
-3. **Configure Space**: 
-   - Choose a unique name (e.g., `my-painaidee-api`)
-   - Set visibility (Public recommended for demo)
-   - SDK will be automatically set to "Docker"
-4. **Deploy**: Click "Create Space" and wait 2-3 minutes
-5. **Access**: Your API will be live at `https://your-space-name.hf.space`
+#### 🚀 Quick Deploy Steps | ขั้นตอนการติดตั้งอย่างรวดเร็ว:
+1. **Click Deploy Button | คลิกปุ่ม Deploy**: Use the deploy button in the Quick Deploy section above | ใช้ปุ่ม deploy ในส่วน Quick Deploy ด้านบน
+2. **Create Account | สร้างบัญชี**: Sign up for free Hugging Face account if needed | สมัครบัญชี Hugging Face ฟรีหากจำเป็น
+3. **Configure Space | ตั้งค่า Space**: 
+   - Choose a unique name (e.g., `my-painaidee-api`) | เลือกชื่อที่ไม่ซ้ำ (เช่น `my-painaidee-api`)
+   - Set visibility (Public recommended for demo) | ตั้งค่าการมองเห็น (แนะนำ Public สำหรับ demo)
+   - SDK will be automatically set to "Docker" | SDK จะถูกตั้งเป็น "Docker" อัตโนมัติ
+4. **Deploy | ติดตั้ง**: Click "Create Space" and wait 2-3 minutes | คลิก "Create Space" และรอ 2-3 นาที
+5. **Access | เข้าถึง**: Your API will be live at `https://your-space-name.hf.space` | API ของคุณจะพร้อมใช้งานที่ `https://your-space-name.hf.space`
 
-#### 📝 Hugging Face Spaces Configuration:
-The deployment uses these files:
-- `app.py` - Hugging Face Spaces entry point
-- `spaces_requirements.txt` - Optimized dependencies for Spaces
-- SQLite database with sample Thai tourism data
+#### 📝 Hugging Face Spaces Configuration | การตั้งค่า Hugging Face Spaces:
+The deployment uses these files | การติดตั้งใช้ไฟล์เหล่านี้:
+- `app.py` - Hugging Face Spaces entry point | จุดเริ่มต้นสำหรับ Hugging Face Spaces
+- `spaces_requirements.txt` - Optimized dependencies for Spaces | dependencies ที่ปรับให้เหมาะสำหรับ Spaces
+- SQLite database with sample Thai tourism data | ฐานข้อมูล SQLite พร้อมข้อมูลท่องเที่ยวไทยตัวอย่าง
 
-#### 🔧 Customization:
-After deployment, you can:
-- Update the sample data by modifying `app.py`
-- Add your own attractions and categories
-- Customize the API responses and branding
-- Connect to external PostgreSQL database if needed
+#### 🔧 Customization | การปรับแต่ง:
+After deployment, you can | หลังจากติดตั้งแล้ว คุณสามารถ:
+- Update the sample data by modifying `app.py` | อัปเดตข้อมูลตัวอย่างโดยแก้ไข `app.py`
+- Add your own attractions and categories | เพิ่มสถานที่ท่องเที่ยวและหมวดหมู่ของคุณเอง
+- Customize the API responses and branding | ปรับแต่งการตอบกลับ API และการสร้างแบรนด์
+- Connect to external PostgreSQL database if needed | เชื่อมต่อกับฐานข้อมูล PostgreSQL ภายนอกหากจำเป็น
 
-#### 🌐 Example Deployed Space:
+#### 🌐 Example Deployed Space | ตัวอย่าง Space ที่ติดตั้งแล้ว:
 ```
-https://your-space-name.hf.space/                    # Homepage with API info
-https://your-space-name.hf.space/api/attractions     # Get all attractions  
-https://your-space-name.hf.space/api/search?q=วัด    # Search attractions
-https://your-space-name.hf.space/health              # Health check
+https://your-space-name.hf.space/                    # Homepage with API info | หน้าแรกพร้อมข้อมูล API
+https://your-space-name.hf.space/api/attractions     # Get all attractions | ดึงสถานที่ท่องเที่ยวทั้งหมด
+https://your-space-name.hf.space/api/search?q=วัด    # Search attractions | ค้นหาสถานที่ท่องเที่ยว
+https://your-space-name.hf.space/health              # Health check | ตรวจสอบสถานะ
 ```
 
 ---
 
-### 🔬 Google Colab (Best for Testing & Development)
+### 🔬 Google Colab (Best for Testing & Development) | เหมาะสำหรับการทดสอบและพัฒนา
 
-Perfect for testing the API temporarily without any setup or accounts.
+Perfect for testing the API temporarily without any setup or accounts. | เหมาะสำหรับทดสอบ API แบบชั่วคราวโดยไม่ต้องติดตั้งหรือสร้างบัญชีใดๆ
 
-#### ✅ Advantages:
-- **No setup required** - Runs in your browser
-- **Instant testing** - Start in under 5 minutes
-- **Full environment** - Complete Python environment provided
-- **ngrok tunnel** - Public URL for external access
-- **Interactive** - Step-by-step guided setup
+#### ✅ Advantages | ข้อดี:
+- **No setup required | ไม่ต้องติดตั้งอะไร** - Runs in your browser | รันในเบราว์เซอร์ของคุณ
+- **Instant testing | ทดสอบทันที** - Start in under 5 minutes | เริ่มได้ภายใน 5 นาที
+- **Full environment | สภาพแวดล้อมครบถ้วน** - Complete Python environment provided | มี Python environment ครบถ้วน
+- **ngrok tunnel** - Public URL for external access | URL สาธารณะสำหรับการเข้าถึงจากภายนอก
+- **Interactive | โต้ตอบได้** - Step-by-step guided setup | การติดตั้งแบบมีคำแนะนำทีละขั้นตอน
 
-#### 🚀 Quick Start Steps:
-1. **Open Notebook**: Click the "Open in Colab" button above
-2. **Run All Cells**: Go to Runtime → Run all (or Ctrl+F9)
-3. **Wait for Setup**: Takes 2-3 minutes to install and configure
-4. **Copy URL**: Get the ngrok URL from the output
-5. **Test API**: Use the URL to access your API endpoints
+#### 🚀 Quick Start Steps | ขั้นตอนการเริ่มต้นอย่างรวดเร็ว:
+1. **Open Notebook | เปิดโน้ตบุ๊ก**: Click the "Open in Colab" button above | คลิกปุ่ม "Open in Colab" ด้านบน
+2. **Run All Cells | รันทุกเซลล์**: Go to Runtime → Run all (or Ctrl+F9) | ไปที่ Runtime → Run all (หรือ Ctrl+F9)
+3. **Wait for Setup | รอการติดตั้ง**: Takes 2-3 minutes to install and configure | ใช้เวลา 2-3 นาทีในการติดตั้งและตั้งค่า
+4. **Copy URL | คัดลอก URL**: Get the ngrok URL from the output | ดึง ngrok URL จากผลลัพธ์
+5. **Test API | ทดสอบ API**: Use the URL to access your API endpoints | ใช้ URL เพื่อเข้าถึง API endpoints ของคุณ
 
-#### 📋 What the Notebook Does:
-1. **Installs Dependencies**: Flask, SQLAlchemy, ngrok, etc.
-2. **Clones Repository**: Gets latest code from GitHub
-3. **Sets up Database**: Creates SQLite with 8+ sample attractions
-4. **Starts Server**: Runs Flask development server
-5. **Creates Tunnel**: ngrok provides public HTTPS URL
-6. **Provides Testing**: Sample API calls to verify setup
+#### 📋 What the Notebook Does | สิ่งที่โน้ตบุ๊กทำ:
+1. **Installs Dependencies | ติดตั้ง Dependencies**: Flask, SQLAlchemy, ngrok, etc. | Flask, SQLAlchemy, ngrok ฯลฯ
+2. **Clones Repository | โคลน Repository**: Gets latest code from GitHub | ดึงโค้ดล่าสุดจาก GitHub
+3. **Sets up Database | ตั้งค่าฐานข้อมูล**: Creates SQLite with 8+ sample attractions | สร้าง SQLite พร้อมสถานที่ท่องเที่ยวตัวอย่าง 8+ แห่ง
+4. **Starts Server | เริ่มเซิร์ฟเวอร์**: Runs Flask development server | รัน Flask development server
+5. **Creates Tunnel | สร้าง Tunnel**: ngrok provides public HTTPS URL | ngrok สร้าง HTTPS URL สาธารณะ
+6. **Provides Testing | ให้การทดสอบ**: Sample API calls to verify setup | การเรียก API ตัวอย่างเพื่อตรวจสอบการติดตั้ง
 
-#### 🌐 Example Colab URLs:
+#### 🌐 Example Colab URLs | ตัวอย่าง URLs จาก Colab:
+```bash
+https://abc123.ngrok.io/                    # Homepage (changes each run) | หน้าแรก (เปลี่ยนทุกครั้งที่รัน)
+https://abc123.ngrok.io/api/attractions     # API endpoints | API endpoints
+https://abc123.ngrok.io/health              # Health check | ตรวจสอบสถานะ
+
+# Test with curl | ทดสอบด้วย curl:
+curl https://abc123.ngrok.io/api/attractions
+curl https://abc123.ngrok.io/api/search?q=วัด
+curl https://abc123.ngrok.io/api/attractions/1
 ```
-https://abc123.ngrok.io/                    # Homepage (changes each run)
-https://abc123.ngrok.io/api/attractions     # API endpoints
-https://abc123.ngrok.io/health              # Health check
-```
 
-#### ⚠️ Important Notes:
-- **Temporary**: Server stops when you close the notebook
-- **URL Changes**: New ngrok URL each time you restart
-- **Keep Running**: Don't close the browser tab
-- **Free Tier**: Google Colab free tier has usage limits
+#### ⚠️ Important Notes | หมายเหตุสำคัญ:
+- **Temporary | ชั่วคราว**: Server stops when you close the notebook | เซิร์ฟเวอร์หยุดเมื่อคุณปิดโน้ตบุ๊ก
+- **URL Changes | URL เปลี่ยน**: New ngrok URL each time you restart | ngrok URL ใหม่ทุกครั้งที่รีสตาร์ท
+- **Keep Running | เปิดทิ้งไว้**: Don't close the browser tab | อย่าปิดแท็บเบราว์เซอร์
+- **Free Tier | แผนฟรี**: Google Colab free tier has usage limits | Google Colab แผนฟรีมีขีดจำกัดการใช้งาน
+
+#### 🔗 Alternative ngrok Configuration | การตั้งค่า ngrok อื่นๆ:
+If you have your own ngrok account, you can use your auth token: | หากคุณมีบัญชี ngrok เป็นของตัวเอง คุณสามารถใช้ auth token ของคุณ:
+```python
+# In the Colab notebook, add your auth token: | ในโน้ตบุ๊ก Colab เพิ่ม auth token ของคุณ:
+ngrok.set_auth_token("your-ngrok-auth-token")
+```
 
 ---
 
