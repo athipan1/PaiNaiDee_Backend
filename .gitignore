@@ -12,3 +12,8 @@ uploads/videos/*.flv
 uploads/videos/*.webm
 uploads/videos/*.mkv
 .env
+
+# Deployment temporary files
+*.db
+/tmp/painaidee.db
+painaidee_colab.db
