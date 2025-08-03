@@ -5,6 +5,17 @@
 [![Flask](https://img.shields.io/badge/flask-3.1.1-blue.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## 🚀 Quick Start | เริ่มต้นอย่างรวดเร็ว
+
+**Deploy instantly with one click | ติดตั้งทันทีด้วยการคลิกเดียว:**
+
+| **🌟 Permanent Deploy<br/>ติดตั้งแบบถาวร** | **🔬 Test Deploy<br/>ทดสอบชั่วคราว** |
+|:---:|:---:|
+| [![Deploy to HF Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb) |
+| **Hugging Face Spaces**<br/>Always online • Free hosting<br/>เออนไลน์ตลอดเวลา • โฮสต์ฟรี | **Google Colab + ngrok**<br/>Instant testing • No setup<br/>ทดสอบทันที • ไม่ต้องติดตั้ง |
+
+---
+
 PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive backend API for a tourism application that helps users discover, explore, and book attractions in Thailand. Built with Flask and PostgreSQL, it provides a robust foundation for travel applications with features including attraction management, user reviews, booking systems, and real-time analytics.
 
 ## 🌟 Features
@@ -51,12 +62,11 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
                     └───────────────────────────┘
 ```
 
-## 🚀 Quick Deploy | การติดตั้งอย่างรวดเร็ว
+## 📖 Deployment Guide | คู่มือการติดตั้ง
 
-Deploy PaiNaiDee Backend instantly with one click | ติดตั้ง PaiNaiDee Backend ได้ทันทีด้วยการคลิกเพียงครั้งเดียว:
+Choose your preferred deployment method | เลือกวิธีการติดตั้งที่ต้องการ:
 
 ### 🌟 Permanent Deployment | การติดตั้งแบบถาวร
-[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend)
 
 **Deploy permanently on Hugging Face Spaces | ติดตั้งแบบถาวรบน Hugging Face Spaces**
 - ✅ **One-click deployment | ติดตั้งคลิกเดียว** - No setup required | ไม่ต้องตั้งค่าอะไร
@@ -75,10 +85,9 @@ Deploy PaiNaiDee Backend instantly with one click | ติดตั้ง PaiNai
 7. **Your API will be live** at `https://your-space-name.hf.space` | **API ของคุณจะพร้อมใช้งาน** ที่ `https://your-space-name.hf.space`
 
 ### 🔬 Temporary Testing | การทดสอบแบบชั่วคราว
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb)
 
 **Run temporarily on Google Colab with ngrok tunnel | รันแบบชั่วคราวบน Google Colab ผ่าน ngrok tunnel**
-- ✅ **Instant testing | ทดสอบทันที** - No account required | ไม่ต้องสร้งบัญชี
+- ✅ **Instant testing | ทดสอบทันที** - No account required | ไม่ต้องสร้างบัญชี
 - ✅ **Full database | ฐานข้อมูลครบถ้วน** - SQLite with sample data | SQLite พร้อมข้อมูลตัวอย่าง
 - ✅ **Public URL | URL สาธารณะ** - Access from anywhere via ngrok | เข้าถึงได้จากทุกที่ผ่าน ngrok
 - ✅ **Interactive notebook | โน้ตบุ๊กแบบโต้ตอบ** - Step-by-step guided setup | การติดตั้งแบบมีคำแนะนำทีละขั้นตอน
