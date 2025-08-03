@@ -56,7 +56,7 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
 Deploy PaiNaiDee Backend instantly with one click:
 
 ### 🌟 Permanent Deployment
-[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=athipan1/PaiNaiDee_Backend&sdk=gradio)
+[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/new-space)
 
 **Deploy permanently on Hugging Face Spaces**
 - ✅ **One-click deployment** - No setup required
@@ -68,10 +68,11 @@ Deploy PaiNaiDee Backend instantly with one click:
 **How to deploy:**
 1. Click the "Deploy to Spaces" button above
 2. Sign up/login to Hugging Face (free)
-3. Choose a name for your Space
-4. Click "Create Space"
-5. Wait 2-3 minutes for deployment
-6. Your API will be live at `https://your-space-name.hf.space`
+3. Choose "Clone a repository" and enter: `https://github.com/athipan1/PaiNaiDee_Backend`
+4. Set SDK to "Docker" and choose a name for your Space
+5. Click "Create Space"
+6. Wait 2-3 minutes for deployment
+7. Your API will be live at `https://your-space-name.hf.space`
 
 ### 🔬 Temporary Testing
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb)
