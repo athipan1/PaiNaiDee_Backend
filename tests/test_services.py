@@ -7,31 +7,32 @@ from werkzeug.security import check_password_hash
 
 def test_register_user_success(app):
     with app.app_context():
-        user, message = AuthService.register_user("newuser", "password")
+        user, message = AuthService.register_user("newuser", "newuser@example.com", "password")
         assert user is not None
         assert message == "User created successfully."
         assert user.username == "newuser"
+        assert user.email == "newuser@example.com"
         assert check_password_hash(user.password, "password")
 
 
 def test_register_user_already_exists(app, test_user):
     with app.app_context():
         user, message = AuthService.register_user(
-            "testuser", "password"
+            "testuser", "testuser@example.com", "password"
         )
         assert user is None
-        assert message == "User already exists."
+        assert message == "User with this username already exists."
 
 
 def test_login_user_success(app, test_user):
     with app.app_context():
-        access_token = AuthService.login_user("testuser", "testpassword")
+        access_token = AuthService.login_user("testuser@example.com", "testpassword")
         assert access_token is not None
 
 
 def test_login_user_invalid_credentials(app):
     with app.app_context():
-        access_token = AuthService.login_user("testuser", "wrongpassword")
+        access_token = AuthService.login_user("nonexistent@example.com", "wrongpassword")
         assert access_token is None
 
 

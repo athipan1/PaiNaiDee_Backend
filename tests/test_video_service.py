@@ -24,7 +24,12 @@ def test_user(app):
     """Create a test user."""
     with app.app_context():
         hashed_password = generate_password_hash("testpass")
-        user = User(username="testuser", password=hashed_password)
+        user = User(
+            username="testuser", 
+            email="testuser@example.com",
+            password=hashed_password,
+            is_admin=True  # Make user admin for video tests
+        )
         db.session.add(user)
         db.session.commit()
         return user
@@ -54,7 +59,9 @@ def mock_video_file():
 
 class TestVideoService:
     def test_allowed_file_valid_extensions(self):
-        """Test allowed_file method with valid video extensions."""
+        """Test StorageService.allowed_video_file method with valid video extensions."""
+        from src.services.storage_service import StorageService
+        
         valid_files = [
             "video.mp4",
             "movie.avi", 
@@ -66,10 +73,12 @@ class TestVideoService:
         ]
         
         for filename in valid_files:
-            assert VideoService.allowed_file(filename) is True
+            assert StorageService.allowed_video_file(filename) is True
 
     def test_allowed_file_invalid_extensions(self):
-        """Test allowed_file method with invalid extensions."""
+        """Test StorageService.allowed_video_file method with invalid extensions."""
+        from src.services.storage_service import StorageService
+        
         invalid_files = [
             "image.jpg",
             "document.pdf",
@@ -79,14 +88,19 @@ class TestVideoService:
         ]
         
         for filename in invalid_files:
-            assert VideoService.allowed_file(filename) is False
+            assert StorageService.allowed_video_file(filename) is False
 
     def test_create_video_post_success(self, app):
         """Test successful video post creation."""
         with app.app_context():
             # Create a user directly in this context
             hashed_password = generate_password_hash("testpass")
-            user = User(username="testuser2", password=hashed_password)
+            user = User(
+                username="testuser2", 
+                email="testuser2@example.com",
+                password=hashed_password,
+                is_admin=True
+            )
             db.session.add(user)
             db.session.commit()
             
@@ -106,6 +120,8 @@ class TestVideoService:
                     
                     video_post, message = VideoService.create_video_post(
                         user.id,
+                        "Test Title",
+                        "Test description",
                         "Test caption",
                         file_storage
                     )
@@ -113,6 +129,8 @@ class TestVideoService:
                 assert video_post is not None
                 assert message == "Video uploaded successfully"
                 assert video_post.user_id == user.id
+                assert video_post.title == "Test Title"
+                assert video_post.description == "Test description"
                 assert video_post.caption == "Test caption"
                 assert video_post.video_url is not None
                 
@@ -148,6 +166,8 @@ class TestVideoService:
                     
                     video_post, message = VideoService.create_video_post(
                         999,  # Non-existent user ID
+                        "Test Title",
+                        "Test description", 
                         "Test caption",
                         file_storage
                     )
@@ -163,7 +183,12 @@ class TestVideoService:
         with app.app_context():
             # Create a user directly in this context
             hashed_password = generate_password_hash("testpass")
-            user = User(username="testuser3", password=hashed_password)
+            user = User(
+                username="testuser3", 
+                email="testuser3@example.com",
+                password=hashed_password,
+                is_admin=True
+            )
             db.session.add(user)
             db.session.commit()
             
@@ -182,6 +207,8 @@ class TestVideoService:
                     
                     video_post, message = VideoService.create_video_post(
                         user.id,
+                        "Test Title",
+                        "Test description",
                         "Test caption",
                         file_storage
                     )
@@ -192,23 +219,71 @@ class TestVideoService:
             finally:
                 os.unlink(temp_file)
 
+    def test_create_video_post_non_admin_user(self, app):
+        """Test video post creation with non-admin user."""
+        with app.app_context():
+            # Create a non-admin user
+            hashed_password = generate_password_hash("testpass")
+            user = User(
+                username="regularuser", 
+                email="regular@example.com",
+                password=hashed_password,
+                is_admin=False
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            # Create a temporary video file
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as f:
+                f.write(b"fake video content")
+                temp_file = f.name
+            
+            try:
+                with open(temp_file, "rb") as f:
+                    file_storage = FileStorage(
+                        stream=f,
+                        filename="test_video.mp4",
+                        content_type="video/mp4"
+                    )
+                    
+                    video_post, message = VideoService.create_video_post(
+                        user.id,
+                        "Test Title",
+                        "Test description",
+                        "Test caption",
+                        file_storage
+                    )
+                
+                assert video_post is None
+                assert message == "Only admin users can upload videos"
+                
+            finally:
+                os.unlink(temp_file)
+
     def test_get_all_videos(self, app):
         """Test getting all videos."""
         with app.app_context():
             # Create a user directly in this context
             hashed_password = generate_password_hash("testpass")
-            user = User(username="testuser2", password=hashed_password)
+            user = User(
+                username="testuser2", 
+                email="testuser2@example.com",
+                password=hashed_password,
+                is_admin=True
+            )
             db.session.add(user)
             db.session.commit()
             
             # Create test video posts
             video1 = VideoPost(
                 user_id=user.id,
+                title="First Video Title",
                 caption="First video",
                 video_url="/uploads/videos/video1.mp4"
             )
             video2 = VideoPost(
                 user_id=user.id,
+                title="Second Video Title",
                 caption="Second video", 
                 video_url="/uploads/videos/video2.mp4"
             )

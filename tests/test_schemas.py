@@ -8,7 +8,7 @@ from src.schemas.attraction import AttractionSchema
 
 def test_register_schema_valid():
     schema = RegisterSchema()
-    data = {"username": "testuser", "password": "password"}
+    data = {"username": "testuser", "email": "test@example.com", "password": "password"}
     result = schema.load(data)
     assert result == data
 
@@ -16,14 +16,16 @@ def test_register_schema_valid():
 def test_register_schema_invalid():
     schema = RegisterSchema()
     with pytest.raises(ValidationError):
-        schema.load({"username": "a"})
+        schema.load({"username": "a", "email": "test@example.com", "password": "password"})
     with pytest.raises(ValidationError):
-        schema.load({"password": "a"})
+        schema.load({"username": "testuser", "email": "test@example.com", "password": "a"})
+    with pytest.raises(ValidationError):
+        schema.load({"username": "testuser", "email": "invalid-email", "password": "password"})
 
 
 def test_login_schema_valid():
     schema = LoginSchema()
-    data = {"username": "testuser", "password": "password"}
+    data = {"email": "testuser@example.com", "password": "password"}
     result = schema.load(data)
     assert result == data
 
@@ -31,9 +33,9 @@ def test_login_schema_valid():
 def test_login_schema_invalid():
     schema = LoginSchema()
     with pytest.raises(ValidationError):
-        schema.load({"username": ""})
+        schema.load({"email": "invalid-email", "password": "password"})
     with pytest.raises(ValidationError):
-        schema.load({"password": ""})
+        schema.load({"email": "test@example.com", "password": ""})
 
 
 def test_review_schema_valid():

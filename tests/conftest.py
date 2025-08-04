@@ -26,7 +26,11 @@ def test_user(app):
         user = User.query.filter_by(username="testuser").first()
         if not user:
             hashed_password = generate_password_hash("testpassword")
-            user = User(username="testuser", password=hashed_password)
+            user = User(
+                username="testuser", 
+                email="testuser@example.com",
+                password=hashed_password
+            )
             db.session.add(user)
             db.session.commit()
         user = User.query.filter_by(username="testuser").first()
