@@ -17,8 +17,9 @@ def register():
 
     username = validated_data["username"]
     password = validated_data["password"]
+    email = validated_data.get("email")
 
-    user, message = AuthService.register_user(username, password)
+    user, message = AuthService.register_user(username, password, email)
 
     if not user:
         abort(409, description=message)

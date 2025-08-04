@@ -180,11 +180,13 @@ class TestVideoRoutes:
             # Create test video posts
             video1 = VideoPost(
                 user_id=user.id,
+                title="First Video Title",
                 caption="First video",
                 video_url="/uploads/videos/video1.mp4"
             )
             video2 = VideoPost(
                 user_id=user.id,
+                title="Second Video Title",
                 caption="Second video",
                 video_url="/uploads/videos/video2.mp4"
             )
