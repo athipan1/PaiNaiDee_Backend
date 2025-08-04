@@ -61,9 +61,18 @@ class VideoService:
         if error:
             return None, error
 
+        # Generate title from filename or caption
+        title = caption if caption else "Untitled Video"
+        if hasattr(video_file, 'filename') and video_file.filename:
+            # Remove extension and use as title if no caption
+            base_name = os.path.splitext(video_file.filename)[0]
+            if not caption:
+                title = base_name.replace('_', ' ').replace('-', ' ').title()
+
         # Create video post record
         video_post = VideoPost(
             user_id=user_id,
+            title=title,
             caption=caption,
             video_url=video_url
         )
