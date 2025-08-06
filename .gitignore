@@ -17,3 +17,4 @@ uploads/videos/*.mkv
 *.db
 /tmp/painaidee.db
 painaidee_colab.db
+*.pyc\n__pycache__/\n.pytest_cache/\n*.egg-info/\n.coverage\nhtmlcov/\n.env.local

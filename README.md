@@ -9,10 +9,10 @@
 
 **Deploy instantly with one click | ติดตั้งทันทีด้วยการคลิกเดียว:**
 
-| **🌟 Permanent Deploy<br/>ติดตั้งแบบถาวร** | **🔬 Test Deploy<br/>ทดสอบชั่วคราว** |
-|:---:|:---:|
-| [![Deploy to HF Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb) |
-| **Hugging Face Spaces**<br/>Always online • Free hosting<br/>เออนไลน์ตลอดเวลา • โฮสต์ฟรี | **Google Colab + ngrok**<br/>Instant testing • No setup<br/>ทดสอบทันที • ไม่ต้องติดตั้ง |
+| **🌟 Permanent Deploy<br/>ติดตั้งแบบถาวร** | **☁️ Cloud Deploy<br/>ติดตั้งบนคลาวด์** | **🔬 Test Deploy<br/>ทดสอบชั่วคราว** |
+|:---:|:---:|:---:|
+| [![Deploy to HF Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-sm.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fathipan1%2FPaiNaiDee_Backend&env=OPENAI_API_KEY,DATABASE_URL,VERCEL_PROJECT_NAME&envDescription=Required%20environment%20variables%20for%20PaiNaiDee%20Backend&envLink=https%3A%2F%2Fgithub.com%2Fathipan1%2FPaiNaiDee_Backend%23environment-variables&project-name=painaidee-backend&repository-name=painaidee-backend) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/athipan1/PaiNaiDee_Backend/blob/main/PaiNaiDee_Colab_Deploy.ipynb) |
+| **Hugging Face Spaces**<br/>Always online • Free hosting<br/>เออนไลน์ตลอดเวลา • โฮสต์ฟรี | **Vercel**<br/>Production ready • Auto scaling<br/>พร้อมใช้งานจริง • ปรับขนาดอัตโนมัติ | **Google Colab + ngrok**<br/>Instant testing • No setup<br/>ทดสอบทันที • ไม่ต้องติดตั้ง |
 
 ---
 
@@ -328,6 +328,95 @@ https://your-space-name.hf.space/health              # Health check | ตรว�
 
 ---
 
+### ☁️ Vercel (Recommended for Production) | แนะนำสำหรับการใช้งานจริง
+
+Vercel provides enterprise-grade hosting with automatic scaling, global CDN, and seamless database integration for production-ready deployments. | Vercel ให้บริการโฮสต์ระดับองค์กรพร้อมการปรับขนาดอัตโนมัติ, CDN ทั่วโลก และการเชื่อมต่อฐานข้อมูลที่ราบรื่นสำหรับการติดตั้งที่พร้อมใช้งานจริง
+
+#### ✅ Advantages | ข้อดี:
+- **Production ready | พร้อมใช้งานจริง** - Enterprise-grade infrastructure with 99.9% uptime | โครงสร้างระดับองค์กรพร้อมการทำงาน 99.9%
+- **Auto-scaling | ปรับขนาดอัตโนมัติ** - Automatic traffic handling and resource scaling | จัดการปริมาณผู้ใช้และทรัพยากรอัตโนมัติ
+- **Global CDN | CDN ทั่วโลก** - Fast response times worldwide | เวลาตอบสนองที่รวดเร็วทั่วโลก
+- **Database integration | การเชื่อมต่อฐานข้อมูล** - Native PostgreSQL and other database support | รองรับ PostgreSQL และฐานข้อมูลอื่นๆ แบบเนทีฟ
+- **Environment variables | ตัวแปรสภาพแวดล้อม** - Secure configuration management | การจัดการการตั้งค่าอย่างปลอดภัย
+- **Git integration | การเชื่อมต่อ Git** - Automatic deployments from GitHub | การติดตั้งอัตโนมัติจาก GitHub
+
+#### 🚀 Quick Deploy Steps | ขั้นตอนการติดตั้งอย่างรวดเร็ว:
+1. **Click Deploy Button | คลิกปุ่ม Deploy**: Use the "Deploy with Vercel" button in the Quick Deploy section above | ใช้ปุ่ม "Deploy with Vercel" ในส่วน Quick Deploy ด้านบน
+2. **Connect GitHub | เชื่อมต่อ GitHub**: Sign in to Vercel with your GitHub account | เข้าสู่ระบบ Vercel ด้วยบัญชี GitHub ของคุณ
+3. **Configure Project | ตั้งค่าโปรเจกต์**: 
+   - Repository will be cloned automatically | Repository จะถูกโคลนอัตโนมัติ
+   - Choose a unique project name | เลือกชื่อโปรเจกต์ที่ไม่ซ้ำ
+   - Select your team/account | เลือก team/account ของคุณ
+4. **Set Environment Variables | ตั้งค่าตัวแปรสภาพแวดล้อม**: Configure required variables (see below) | ตั้งค่าตัวแปรที่จำเป็น (ดูด้านล่าง)
+5. **Deploy | ติดตั้ง**: Click "Deploy" and wait 2-3 minutes | คลิก "Deploy" และรอ 2-3 นาที
+6. **Access | เข้าถึง**: Your API will be live at `https://your-project-name.vercel.app` | API ของคุณจะพร้อมใช้งานที่ `https://your-project-name.vercel.app`
+
+#### 🔧 Environment Variables | ตัวแปรสภาพแวดล้อม
+
+**Required Variables | ตัวแปรที่จำเป็น:**
+
+| Variable | Description | Example Value |
+|----------|-------------|---------------|
+| `OPENAI_API_KEY` | OpenAI API key for AI features | `sk-proj-...` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:password@host:5432/dbname` |
+| `VERCEL_PROJECT_NAME` | Your Vercel project name | `my-painaidee-backend` |
+
+**Optional Variables | ตัวแปรเสริม:**
+```env
+SECRET_KEY=your-production-secret-key-here
+FLASK_ENV=production
+TALK_MODEL=gpt-3.5-turbo
+TALK_MAX_TOKENS=500
+TALK_TEMPERATURE=0.7
+```
+
+#### 📊 Database Setup | การตั้งค่าฐานข้อมูล
+
+**Option 1: Vercel Postgres (Recommended) | ตัวเลือกที่ 1: Vercel Postgres (แนะนำ)**
+1. Go to your Vercel dashboard | ไปที่ dashboard ของ Vercel
+2. Navigate to Storage → Create Database → Postgres | ไปที่ Storage → Create Database → Postgres
+3. Copy the connection string to `DATABASE_URL` | คัดลอก connection string ไปใส่ `DATABASE_URL`
+
+**Option 2: External Database | ตัวเลือกที่ 2: ฐานข้อมูลภายนอก**
+Use services like Railway, Supabase, or AWS RDS | ใช้บริการเช่น Railway, Supabase หรือ AWS RDS
+
+#### 🧪 Testing Your Deployment | การทดสอบการติดตั้งของคุณ
+
+After deployment, verify your API is working: | หลังจากติดตั้งแล้ว ตรวจสอบว่า API ทำงานได้:
+
+```bash
+# Test basic endpoints | ทดสอบ endpoint พื้นฐาน
+curl https://your-project-name.vercel.app/health
+curl https://your-project-name.vercel.app/api/attractions
+
+# Run all tests locally | รันการทดสอบทั้งหมดในเครื่อง
+python tests/run_all_tests.py
+
+# Run tests with coverage | รันการทดสอบพร้อมดูครอบคลุม
+python tests/run_all_tests.py --coverage
+```
+
+#### 🌐 Example Deployed URLs | ตัวอย่าง URLs ที่ติดตั้งแล้ว:
+```
+https://your-project-name.vercel.app/                    # Homepage with API info | หน้าแรกพร้อมข้อมูล API
+https://your-project-name.vercel.app/api/attractions     # Get all attractions | ดึงสถานที่ท่องเที่ยวทั้งหมด
+https://your-project-name.vercel.app/api/search?q=วัด    # Search attractions | ค้นหาสถานที่ท่องเที่ยว
+https://your-project-name.vercel.app/health              # Health check | ตรวจสอบสถานะ
+```
+
+#### 🔄 Continuous Deployment | การติดตั้งอย่างต่อเนื่อง
+- **Auto-deploy | ติดตั้งอัตโนมัติ**: Every push to main branch triggers deployment | การ push ทุกครั้งไปยัง main branch จะทำการติดตั้งอัตโนมัติ
+- **Preview deployments | การติดตั้งแบบ preview**: Pull requests get preview URLs | Pull request จะได้ URL สำหรับ preview
+- **Rollback | ย้อนกลับ**: Easy rollback to previous versions | ย้อนกลับไปเวอร์ชันก่อนหน้าได้ง่าย
+
+#### 🚨 Production Considerations | ข้อควรพิจารณาสำหรับการใช้งานจริง
+- **Custom Domain | โดเมนที่กำหนดเอง**: Add your own domain in Vercel settings | เพิ่มโดเมนของคุณเองในการตั้งค่า Vercel
+- **SSL/HTTPS | SSL/HTTPS**: Automatic SSL certificates | ใบรับรอง SSL อัตโนมัติ
+- **Rate Limiting | การจำกัดอัตรา**: Consider implementing rate limiting for production | พิจารณาใช้การจำกัดอัตราสำหรับการใช้งานจริง
+- **Monitoring | การติดตาม**: Use Vercel Analytics for performance monitoring | ใช้ Vercel Analytics สำหรับติดตามประสิทธิภาพ
+
+---
+
 ### 🔬 Google Colab (Best for Testing & Development) | เหมาะสำหรับการทดสอบและพัฒนา
 
 Perfect for testing the API temporarily without any setup or accounts. | เหมาะสำหรับทดสอบ API แบบชั่วคราวโดยไม่ต้องติดตั้งหรือสร้างบัญชีใดๆ
@@ -416,6 +505,23 @@ docker-compose up --build
 The project includes comprehensive testing with 82 test cases covering all major functionality.
 
 ### Running Tests
+
+**🚀 Quick Test Runner (Recommended) | เครื่องมือรันเทสต์อย่างรวดเร็ว (แนะนำ):**
+```bash
+# Run all tests with the convenient test runner | รันการทดสอบทั้งหมดด้วยเครื่องมือที่สะดวก
+python tests/run_all_tests.py
+
+# Run with verbose output | รันพร้อมผลลัพธ์แบบละเอียด
+python tests/run_all_tests.py --verbose
+
+# Run with coverage report | รันพร้อมรายงานความครอบคลุม
+python tests/run_all_tests.py --coverage
+
+# Run specific test file | รันไฟล์เทสต์เฉพาะ
+python tests/run_all_tests.py --specific test_reviews.py
+```
+
+**Direct pytest commands | คำสั่ง pytest โดยตรง:**
 ```bash
 # Run all tests
 python -m pytest
