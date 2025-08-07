@@ -49,5 +49,12 @@ services:
     depends_on:
       - backend
 
+  ai_assistant:
+    build:
+      context: https://github.com/athipan1/AI_Assistant_PaiNaiDee.git
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+
 volumes:
   postgres_data:
