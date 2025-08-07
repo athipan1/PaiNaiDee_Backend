@@ -17,3 +17,7 @@ uploads/videos/*.mkv
 *.db
 /tmp/painaidee.db
 painaidee_colab.db
+
+# Additional cache and temporary files
+instance/
+.pytest_cache/

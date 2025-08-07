@@ -49,5 +49,10 @@ services:
     depends_on:
       - backend
 
+  ai_assistant:
+    build: https://github.com/athipan1/AI_Assistant_PaiNaiDee.git
+    ports:
+      - "8001:8001"
+
 volumes:
   postgres_data:
