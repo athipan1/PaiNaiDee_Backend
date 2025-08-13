@@ -302,17 +302,19 @@ pyproject.toml              # Tool configuration (ruff, black)
 
 5. **Running the Application:**
    ```bash
-   # Start the Flask development server
-   python run.py
+   # Start the Flask development server (new structure)
+   python run_new.py
 
    # Or use Flask CLI
-   flask run
+   FLASK_APP=run_new.py flask run
 
    # With specific configuration
-   FLASK_ENV=development python run.py
+   FLASK_ENV=development python run_new.py
 
    # API will be available at http://localhost:5000
    ```
+
+   **Migration from v1.x**: Use `run_new.py` instead of `run.py`
 
 ### Search Development Roadmap
 
@@ -584,10 +586,16 @@ pyproject.toml            # Tool configuration
 
 ### Database Migrations
 ```bash
+# Initialize migrations (first time only)
+flask db init
+
 # Create new migration
-python migrate_new_feature.py
+FLASK_APP=run_new.py flask db migrate -m "Description"
 
 # Apply migrations
+FLASK_APP=run_new.py flask db upgrade
+
+# Database initialization (for development)
 python init_db.py
 ```
 
