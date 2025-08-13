@@ -1,0 +1,62 @@
+import os
+import json
+from typing import Dict, Any
+from pydantic_settings import BaseSettings
+from pydantic import Field
+
+
+class Settings(BaseSettings):
+    """Application settings for FastAPI Phase 1"""
+    
+    # Database
+    database_url: str = Field(default="postgresql://postgres:password@localhost:5432/painaidee_db", env="DATABASE_URL")
+    db_host: str = Field(default="localhost", env="DB_HOST")
+    db_port: str = Field(default="5432", env="DB_PORT")
+    db_name: str = Field(default="painaidee_db", env="DB_NAME")
+    db_user: str = Field(default="postgres", env="DB_USER")
+    db_password: str = Field(default="", env="DB_PASSWORD")
+    
+    # Search configuration
+    search_rank_weights: str = Field(
+        default='{"w_pop": 0.7, "w_recency": 0.3}',
+        env="SEARCH_RANK_WEIGHTS"
+    )
+    max_nearby_radius_km: float = Field(default=50.0, env="MAX_NEARBY_RADIUS_KM")
+    trigram_sim_threshold: float = Field(default=0.35, env="TRIGRAM_SIM_THRESHOLD")
+    alpha_comment: float = Field(default=2.0, env="ALPHA_COMMENT")
+    tau_minutes: float = Field(default=4320.0, env="TAU_MINUTES")  # 3 days
+    
+    # App configuration
+    app_name: str = "PaiNaiDee Backend API - Phase 1"
+    version: str = "1.0.0"
+    debug: bool = Field(default=False, env="DEBUG")
+    
+    # CORS
+    cors_origins: list = [
+        "http://localhost:3000",
+        "https://painaidee.com",
+        "https://frontend-painaidee.web.app"
+    ]
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+    
+    @property
+    def search_weights(self) -> Dict[str, float]:
+        """Parse search rank weights from JSON string"""
+        try:
+            return json.loads(self.search_rank_weights)
+        except (json.JSONDecodeError, TypeError):
+            return {"w_pop": 0.7, "w_recency": 0.3}
+    
+    @property
+    def database_uri(self) -> str:
+        """Construct database URI if not provided directly"""
+        if self.database_url and self.database_url != "postgresql://postgres:password@localhost:5432/painaidee_db":
+            return self.database_url
+        
+        return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
+
+settings = Settings()

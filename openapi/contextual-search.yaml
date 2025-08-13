@@ -1,0 +1,1076 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PaiNaiDee Backend API - Phase 1",
+    "description": "\n# PaiNaiDee Backend API - Phase 1\n\nContextual Travel Content Search API with fuzzy matching, keyword expansion, and ranking.\n\n## Features\n\n### Search (`/api/search`)\n- **Fuzzy matching** on location names using trigram similarity\n- **Keyword expansion** via static mapping (province → landmarks)\n- **Ranking algorithm** combining popularity and recency\n- **Multi-field search** across captions, tags, and locations\n\n### Locations (`/api/locations`)\n- **Location details** with post counts and metadata\n- **Nearby places** using geographic distance or similarity fallback\n- **Autocomplete** with fuzzy matching and popularity ranking\n\n### Posts (`/api/posts`)\n- **Multipart upload** supporting images and videos\n- **Auto-location matching** based on coordinates\n- **Tag processing** and indexing\n- **Structured logging** for analytics\n\n## Architecture\n\nBuilt with FastAPI for async performance and automatic OpenAPI documentation.\nUses PostgreSQL with pg_trgm extension for fuzzy search capabilities.\n\n## Phase 1 Scope\n\nThis implementation focuses on:\n- Basic fuzzy search and keyword expansion\n- Geographic proximity matching\n- Simple popularity + recency ranking\n- Foundation for future semantic search (Phase 2)\n\n## Open Questions\n\n- PostGIS availability for advanced geographic queries\n- Authentication system integration\n- Dual Flask/FastAPI framework support\n        ",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Search Posts",
+        "description": "Search for travel posts using fuzzy matching, keyword expansion, and ranking.\n\nThis endpoint implements Phase 1 contextual search with:\n- Fuzzy matching on location names and aliases using trigram similarity\n- Keyword expansion via static mapping (province → landmarks)\n- Post retrieval using expansion terms (caption ILIKE, tags overlap, location match)\n- Ranking blend (popularity + recency) with configurable weights\n\n**Example queries:**\n- `เชียงใหม่` - Searches for Chiang Mai and related landmarks\n- `ทะเล` - Searches for sea/beach related content\n- `ภูเขา` - Searches for mountain/hill related content",
+        "operationId": "search_posts_api_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "Search query",
+              "title": "Q"
+            },
+            "description": "Search query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Number of results to return",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Number of results to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Offset for pagination",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Offset for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/{location_id}": {
+      "get": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Get Location",
+        "description": "Get detailed information about a specific location.\n\nReturns location details including:\n- Basic location information (name, province, coordinates)\n- Aliases and popularity score\n- Number of associated posts",
+        "operationId": "get_location_api_locations__location_id__get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Location ID (UUID)",
+              "title": "Location Id"
+            },
+            "description": "Location ID (UUID)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/{location_id}/nearby": {
+      "get": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Get Nearby Locations",
+        "description": "Get nearby locations within specified radius.\n\nUses geographic distance calculation if coordinates are available,\notherwise falls back to curated list based on province or name similarity.\n\n**Features:**\n- Geographic distance calculation using Haversine formula\n- Fallback to province-based similarity matching\n- Configurable search radius (0.1-100 km)\n- Results ordered by distance or relevance",
+        "operationId": "get_nearby_locations_api_locations__location_id__nearby_get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Location ID (UUID)",
+              "title": "Location Id"
+            },
+            "description": "Location ID (UUID)"
+          },
+          {
+            "name": "radius_km",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 100.0,
+              "minimum": 0.1,
+              "description": "Search radius in kilometers",
+              "default": 10.0,
+              "title": "Radius Km"
+            },
+            "description": "Search radius in kilometers"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NearbyLocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/autocomplete": {
+      "get": {
+        "tags": [
+          "locations"
+        ],
+        "summary": "Autocomplete Locations",
+        "description": "Get location autocomplete suggestions.\n\nProvides fast location suggestions using:\n- Prefix matching for exact matches\n- Fuzzy matching using trigram similarity\n- Alias matching for alternative names\n- Popularity-based ranking\n\n**Use cases:**\n- Search box autocomplete\n- Location picker suggestions\n- Quick location lookup",
+        "operationId": "autocomplete_locations_api_locations_autocomplete_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Search query for autocomplete",
+              "title": "Q"
+            },
+            "description": "Search query for autocomplete"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Maximum number of suggestions",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Maximum number of suggestions"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutocompleteLocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts": {
+      "post": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Create Post",
+        "description": "Create a new post with media uploads.\n\n**Multipart form data with:**\n- `caption`: Optional post caption (max 2000 chars)\n- `tags`: JSON array of tags (e.g., '[\"beach\", \"sunset\"]')\n- `location_id`: Optional location UUID\n- `lat`, `lng`: Optional coordinates for auto-location matching\n- `media_files`: One or more image/video files\n\n**Features:**\n- Auto-location matching based on coordinates (5km radius)\n- Support for multiple media files\n- Tag processing and indexing\n- Structured logging for analytics\n\n**Location Matching:**\nIf coordinates are provided, the system automatically finds\nthe nearest location within 5km radius and associates it with the post.",
+        "operationId": "create_post_api_posts_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_post_api_posts_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Root",
+        "description": "Health check and API information",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Simple health check endpoint",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AutocompleteLocationResponse": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__locations__LocationResponse"
+            },
+            "type": "array",
+            "title": "Suggestions",
+            "description": "Location suggestions"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "Original query"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count",
+            "description": "Total number of suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suggestions",
+          "query",
+          "total_count"
+        ],
+        "title": "AutocompleteLocationResponse",
+        "description": "Schema for location autocomplete response"
+      },
+      "Body_create_post_api_posts_post": {
+        "properties": {
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption",
+            "description": "Post caption"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "JSON array of tags"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id",
+            "description": "Location ID (UUID)"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat",
+            "description": "Latitude"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng",
+            "description": "Longitude"
+          },
+          "media_files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Media Files",
+            "description": "Media files (images/videos)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "media_files"
+        ],
+        "title": "Body_create_post_api_posts_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LocationDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Location ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Location name"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province",
+            "description": "Province"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases",
+            "description": "Location aliases",
+            "default": []
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat",
+            "description": "Latitude"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng",
+            "description": "Longitude"
+          },
+          "popularity_score": {
+            "type": "integer",
+            "title": "Popularity Score",
+            "description": "Popularity score"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "posts_count": {
+            "type": "integer",
+            "title": "Posts Count",
+            "description": "Number of associated posts"
+          },
+          "nearby_locations": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__locations__LocationResponse"
+            },
+            "type": "array",
+            "title": "Nearby Locations",
+            "description": "Nearby locations",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "popularity_score",
+          "created_at",
+          "posts_count"
+        ],
+        "title": "LocationDetailResponse",
+        "description": "Schema for detailed location response"
+      },
+      "MediaResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Media type (image/video)"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Media URL"
+          },
+          "thumb_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumb Url",
+            "description": "Thumbnail URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "url"
+        ],
+        "title": "MediaResponse",
+        "description": "Media response schema"
+      },
+      "NearbyLocationResponse": {
+        "properties": {
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__locations__LocationResponse"
+            },
+            "type": "array",
+            "title": "Locations",
+            "description": "Nearby locations"
+          },
+          "radius_km": {
+            "type": "number",
+            "title": "Radius Km",
+            "description": "Search radius used"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count",
+            "description": "Total number of nearby locations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "locations",
+          "radius_km",
+          "total_count"
+        ],
+        "title": "NearbyLocationResponse",
+        "description": "Schema for nearby location response"
+      },
+      "PostUploadResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Upload success status"
+          },
+          "post": {
+            "$ref": "#/components/schemas/app__schemas__posts__PostResponse",
+            "description": "Created post"
+          },
+          "location_matched": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Matched",
+            "description": "Auto-matched location name"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Response message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "post",
+          "message"
+        ],
+        "title": "PostUploadResponse",
+        "description": "Schema for post upload response"
+      },
+      "SearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "Original search query"
+          },
+          "expansion": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Expansion",
+            "description": "Expanded search terms",
+            "default": []
+          },
+          "posts": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__search__PostResponse"
+            },
+            "type": "array",
+            "title": "Posts",
+            "description": "Search results",
+            "default": []
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionResponse"
+            },
+            "type": "array",
+            "title": "Suggestions",
+            "description": "Search suggestions",
+            "default": []
+          },
+          "latency_ms": {
+            "type": "number",
+            "title": "Latency Ms",
+            "description": "Search latency in milliseconds"
+          },
+          "total_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Count",
+            "description": "Total number of results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "latency_ms"
+        ],
+        "title": "SearchResponse",
+        "description": "Search response schema"
+      },
+      "SuggestionResponse": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Suggestion type (place/tag/category)"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Suggestion text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "SuggestionResponse",
+        "description": "Search suggestion schema"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "app__schemas__locations__LocationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Location ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Location name"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province",
+            "description": "Province"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases",
+            "description": "Location aliases",
+            "default": []
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat",
+            "description": "Latitude"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng",
+            "description": "Longitude"
+          },
+          "popularity_score": {
+            "type": "integer",
+            "title": "Popularity Score",
+            "description": "Popularity score"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "popularity_score",
+          "created_at"
+        ],
+        "title": "LocationResponse",
+        "description": "Schema for location response"
+      },
+      "app__schemas__posts__PostResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Post ID"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "User ID"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption",
+            "description": "Post caption"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "Post tags",
+            "default": []
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id",
+            "description": "Location ID"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat",
+            "description": "Latitude"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng",
+            "description": "Longitude"
+          },
+          "like_count": {
+            "type": "integer",
+            "title": "Like Count",
+            "description": "Number of likes"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "description": "Number of comments"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "like_count",
+          "comment_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PostResponse",
+        "description": "Schema for post response"
+      },
+      "app__schemas__search__LocationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Location ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Location name"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province",
+            "description": "Province"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat",
+            "description": "Latitude"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng",
+            "description": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "LocationResponse",
+        "description": "Location response schema"
+      },
+      "app__schemas__search__PostResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Post ID"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption",
+            "description": "Post caption"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/MediaResponse"
+            },
+            "type": "array",
+            "title": "Media",
+            "description": "Post media",
+            "default": []
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/app__schemas__search__LocationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Associated location"
+          },
+          "like_count": {
+            "type": "integer",
+            "title": "Like Count",
+            "description": "Number of likes"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "description": "Number of comments"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Relevance score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "like_count",
+          "comment_count",
+          "created_at",
+          "score"
+        ],
+        "title": "PostResponse",
+        "description": "Post response schema"
+      }
+    }
+  }
+}
