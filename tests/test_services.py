@@ -1,7 +1,7 @@
-from src.services.auth_service import AuthService
-from src.services.review_service import ReviewService
-from src.services.booking_service import BookingService
-from src.models import db, Attraction, Room, Car
+from app.services.auth_service import AuthService
+from app.services.review_service import ReviewService
+from app.services.booking_service import BookingService
+from app.models import db, Attraction, Room, Car
 from werkzeug.security import check_password_hash
 
 

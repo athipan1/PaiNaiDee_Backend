@@ -2,8 +2,8 @@ import pytest
 import json
 import os
 from unittest.mock import patch, MagicMock
-from src.app import create_app
-from src.services.talk_service import TalkService
+from app.app import create_app
+from app.services.talk_service import TalkService
 
 
 class TestTalkEndpoint:

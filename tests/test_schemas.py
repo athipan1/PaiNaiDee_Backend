@@ -1,9 +1,9 @@
 import pytest
 from marshmallow import ValidationError
-from src.schemas.auth import RegisterSchema, LoginSchema
-from src.schemas.review import ReviewSchema
-from src.schemas.booking import RoomBookingSchema, CarRentalSchema
-from src.schemas.attraction import AttractionSchema
+from app.schemas.auth import RegisterSchema, LoginSchema
+from app.schemas.review import ReviewSchema
+from app.schemas.booking import RoomBookingSchema, CarRentalSchema
+from app.schemas.attraction import AttractionSchema
 
 
 def test_register_schema_valid():

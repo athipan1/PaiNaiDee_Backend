@@ -1,8 +1,8 @@
 import pytest
 import json
 from datetime import datetime, timedelta
-from src.models import db
-from src.models.api_analytics import APIAnalytics
+from app.models import db
+from app.models.api_analytics import APIAnalytics
 
 
 class TestDashboardRoutes:

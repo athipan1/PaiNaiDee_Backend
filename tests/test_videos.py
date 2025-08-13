@@ -2,8 +2,8 @@ import os
 import tempfile
 import pytest
 from werkzeug.security import generate_password_hash
-from src.app import create_app
-from src.models import db, User, VideoPost
+from app.app import create_app
+from app.models import db, User, VideoPost
 
 
 @pytest.fixture

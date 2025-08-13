@@ -1,5 +1,5 @@
 import io
-from src.models import db, Attraction, User, Room, Car
+from app.models import db, Attraction, User, Room, Car
 from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
 
@@ -10,7 +10,7 @@ def test_home_page(client):
     assert rv.status_code == 200
     json_data = rv.get_json()
     assert json_data["success"] is True
-    assert "Welcome to Pai Nai Dii Backend!" in json_data["message"]
+    assert "Welcome to PaiNaiDee Backend!" in json_data["message"]
 
 
 def test_get_all_attractions(client):

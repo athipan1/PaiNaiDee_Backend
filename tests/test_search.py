@@ -1,6 +1,6 @@
 import pytest
-from src.app import create_app
-from src.models import db, Attraction
+from app.app import create_app
+from app.models import db, Attraction
 import json
 
 

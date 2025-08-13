@@ -1,6 +1,6 @@
 import pytest
-from src.app import create_app
-from src.models import db, User
+from app import create_app
+from app.models import db, User
 from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
 

@@ -1,8 +1,8 @@
 import pytest
 import json
-from src.app import create_app
-from src.models import db
-from src.models.external_data import DataSource, ManualUpdate, ScheduledUpdate
+from app.app import create_app
+from app.models import db
+from app.models.external_data import DataSource, ManualUpdate, ScheduledUpdate
 
 
 @pytest.fixture
