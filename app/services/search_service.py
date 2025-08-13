@@ -3,9 +3,16 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import func, or_, text
+from sqlalchemy import func, or_, text, and_
 
 from ..models import Attraction, db
+from ..utils.text_normalization import (
+    normalize_text,
+    generate_search_terms,
+    calculate_text_similarity_score,
+    clean_search_query,
+    is_thai_text
+)
 
 
 @dataclass
