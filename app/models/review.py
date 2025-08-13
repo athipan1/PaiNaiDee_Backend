@@ -5,16 +5,14 @@ class Review(db.Model):
     __tablename__ = "reviews"
 
     id = db.Column(db.Integer, primary_key=True)
-    place_id = db.Column(
-        db.Integer, db.ForeignKey("attractions.id"), nullable=False
-    )
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=False
-    )
+    place_id = db.Column(db.Integer, db.ForeignKey("attractions.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    updated_at = db.Column(
+        db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
+    )
 
     # Relationships
     user = db.relationship("User", backref="reviews")

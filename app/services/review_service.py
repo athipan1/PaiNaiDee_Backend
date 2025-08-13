@@ -1,5 +1,6 @@
-from ..models import db, Review, User, Attraction
 from sqlalchemy import func
+
+from ..models import Attraction, Review, User, db
 
 
 class ReviewService:
@@ -16,8 +17,7 @@ class ReviewService:
 
         # Check if user has already reviewed this attraction
         existing_review = Review.query.filter_by(
-            user_id=user_id, 
-            place_id=data["place_id"]
+            user_id=user_id, place_id=data["place_id"]
         ).first()
         if existing_review:
             return None, "You have already reviewed this attraction."
@@ -41,18 +41,28 @@ class ReviewService:
             raise ValueError("Attraction not found.")
 
         # Get average rating
-        avg_rating_query = db.session.query(
-            func.avg(Review.rating).label('average_rating'),
-            func.count(Review.id).label('total_reviews')
-        ).filter(Review.place_id == attraction_id).first()
+        avg_rating_query = (
+            db.session.query(
+                func.avg(Review.rating).label("average_rating"),
+                func.count(Review.id).label("total_reviews"),
+            )
+            .filter(Review.place_id == attraction_id)
+            .first()
+        )
 
-        avg_rating = float(avg_rating_query.average_rating) if avg_rating_query.average_rating else 0
+        avg_rating = (
+            float(avg_rating_query.average_rating)
+            if avg_rating_query.average_rating
+            else 0
+        )
         total_reviews = avg_rating_query.total_reviews or 0
 
         # Get paginated reviews
-        paginated_reviews = Review.query.filter_by(place_id=attraction_id)\
-            .order_by(Review.created_at.desc())\
+        paginated_reviews = (
+            Review.query.filter_by(place_id=attraction_id)
+            .order_by(Review.created_at.desc())
             .paginate(page=page, per_page=limit, error_out=False)
+        )
 
         reviews_data = [review.to_dict() for review in paginated_reviews.items]
 
@@ -66,7 +76,7 @@ class ReviewService:
                 "total_items": paginated_reviews.total,
                 "has_next": paginated_reviews.has_next,
                 "has_prev": paginated_reviews.has_prev,
-            }
+            },
         }
 
     @staticmethod

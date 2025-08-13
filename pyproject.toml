@@ -1,0 +1,267 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "painaidee-backend"
+version = "2.0.0"
+description = "Thai Tourism Backend API with Flask and PostgreSQL"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "PaiNaiDee Team", email = "athipan1@github.com"},
+]
+keywords = ["flask", "tourism", "thailand", "api", "postgresql", "search"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Flask",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "Flask>=3.1.1",
+    "Flask-SQLAlchemy>=3.1.1",
+    "Flask-Migrate>=4.0.5",
+    "Flask-JWT-Extended>=4.7.1",
+    "Flask-CORS>=6.0.1",
+    "flask-marshmallow>=1.3.0",
+    "marshmallow>=4.0.0",
+    "marshmallow-sqlalchemy>=1.4.2",
+    "psycopg2-binary>=2.9.10",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.3",
+    "openai>=1.54.3",
+    "pydantic>=2.11.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.0.0",
+]
+redis = [
+    "redis>=5.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/athipan1/PaiNaiDee_Backend"
+Repository = "https://github.com/athipan1/PaiNaiDee_Backend"
+Documentation = "https://github.com/athipan1/PaiNaiDee_Backend#readme"
+"Bug Tracker" = "https://github.com/athipan1/PaiNaiDee_Backend/issues"
+
+# ====================================================================================
+# Ruff Configuration
+# ====================================================================================
+
+[tool.ruff]
+# Set the maximum line length to 88.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.9+.
+target-version = "py39"
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "migrations",  # Exclude Alembic migrations from linting
+    "src_backup",  # Exclude backup directory
+]
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "I",    # isort
+    "N",    # pep8-naming
+    "S",    # flake8-bandit (security)
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "T20",  # flake8-print
+    "RET",  # flake8-return
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "PL",   # Pylint
+    "TRY",  # tryceratops
+    "RUF",  # Ruff-specific rules
+]
+
+ignore = [
+    "S101",    # Use of `assert` detected (common in tests)
+    "S105",    # Possible hardcoded password (false positives with Flask secrets)
+    "S106",    # Possible hardcoded password in function argument
+    "T201",    # `print` found (allow print statements for debugging)
+    "PLR0913", # Too many arguments to function call
+    "PLR2004", # Magic value used in comparison
+    "ARG002",  # Unused method argument (common in Flask routes)
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "B008",    # Do not perform function calls in argument defaults (Flask defaults)
+    "COM812",  # Trailing comma missing (handled by black)
+    "PTH123",  # `open()` should be replaced by `Path.open()` (not always applicable)
+    "S603",    # `subprocess` call: check for execution of untrusted input
+    "S607",    # Starting a process with a partial executable path
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and imports
+"tests/**/*" = ["PLR2004", "S101", "ARG", "PLR0913", "S105", "S106"]
+# Allow imports in __init__.py files
+"__init__.py" = ["F401"]
+# Config files can have long lines and magic values
+"app/config.py" = ["PLR2004", "S105"]
+# Migration files can ignore most rules
+"migrations/**/*" = ["ALL"]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# ====================================================================================
+# Black Configuration
+# ====================================================================================
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+  | src_backup
+)/
+'''
+
+# ====================================================================================
+# isort Configuration
+# ====================================================================================
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+skip_glob = [
+    "migrations/*",
+    "src_backup/*",
+]
+
+# ====================================================================================
+# pytest Configuration
+# ====================================================================================
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "search: marks tests related to search functionality",
+]
+
+# ====================================================================================
+# Coverage Configuration
+# ====================================================================================
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/migrations/*",
+    "*/src_backup/*",
+    "*/tests/*",
+    "*/venv/*",
+    "*/__pycache__/*",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    'if __name__ == "__main__":',
+    "class .*\\(.*Protocol.*\\):",
+    "@(abc\\.)?abstractmethod",
+]

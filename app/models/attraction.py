@@ -1,6 +1,7 @@
+from sqlalchemy import func
+
 from . import db
 from .json_encoded_dict import JSONEncodedDict
-from sqlalchemy import func
 
 
 class Attraction(db.Model):
@@ -28,18 +29,20 @@ class Attraction(db.Model):
     def get_review_stats(self):
         """Get average rating and total review count for this attraction."""
         from .review import Review
-        result = db.session.query(
-            func.avg(Review.rating).label('average_rating'),
-            func.count(Review.id).label('total_reviews')
-        ).filter(Review.place_id == self.id).first()
-        
+
+        result = (
+            db.session.query(
+                func.avg(Review.rating).label("average_rating"),
+                func.count(Review.id).label("total_reviews"),
+            )
+            .filter(Review.place_id == self.id)
+            .first()
+        )
+
         avg_rating = float(result.average_rating) if result.average_rating else 0
         total_reviews = result.total_reviews or 0
-        
-        return {
-            "average_rating": round(avg_rating, 1),
-            "total_reviews": total_reviews
-        }
+
+        return {"average_rating": round(avg_rating, 1), "total_reviews": total_reviews}
 
     def to_dict(self):
         review_stats = self.get_review_stats()
@@ -57,11 +60,13 @@ class Attraction(db.Model):
             "contact_phone": self.contact_phone,
             "website": self.website,
             "image_url": self.main_image_url,  # Main image URL as requested
-            "images": self.image_urls if self.image_urls else [],  # Additional images array
+            "images": self.image_urls
+            if self.image_urls
+            else [],  # Additional images array
             "rooms": [room.to_dict() for room in self.rooms],
             "cars": [car.to_dict() for car in self.cars],
             "average_rating": review_stats["average_rating"],
-            "total_reviews": review_stats["total_reviews"]
+            "total_reviews": review_stats["total_reviews"],
         }
 
     def to_category_dict(self):

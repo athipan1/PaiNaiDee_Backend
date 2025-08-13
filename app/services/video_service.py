@@ -1,6 +1,8 @@
 import os
+
 from werkzeug.utils import secure_filename
-from ..models import db, VideoPost, User
+
+from ..models import User, VideoPost, db
 
 
 class VideoService:
@@ -41,12 +43,12 @@ class VideoService:
             counter += 1
 
         file_path = os.path.join(VideoService.UPLOAD_FOLDER, unique_filename)
-        
+
         try:
             file.save(file_path)
             return f"/{file_path}", None
         except Exception as e:
-            return None, f"Error saving file: {str(e)}"
+            return None, f"Error saving file: {e!s}"
 
     @staticmethod
     def create_video_post(user_id, caption, video_file):
@@ -63,18 +65,15 @@ class VideoService:
 
         # Generate title from filename or caption
         title = caption if caption else "Untitled Video"
-        if hasattr(video_file, 'filename') and video_file.filename:
+        if hasattr(video_file, "filename") and video_file.filename:
             # Remove extension and use as title if no caption
             base_name = os.path.splitext(video_file.filename)[0]
             if not caption:
-                title = base_name.replace('_', ' ').replace('-', ' ').title()
+                title = base_name.replace("_", " ").replace("-", " ").title()
 
         # Create video post record
         video_post = VideoPost(
-            user_id=user_id,
-            title=title,
-            caption=caption,
-            video_url=video_url
+            user_id=user_id, title=title, caption=caption, video_url=video_url
         )
 
         try:
@@ -89,14 +88,9 @@ class VideoService:
                     os.remove(video_url[1:])
             except:
                 pass
-            return None, f"Error saving video post: {str(e)}"
+            return None, f"Error saving video post: {e!s}"
 
     @staticmethod
     def get_all_videos():
         """Get all video posts ordered by creation date (newest first)"""
-        return (
-            VideoPost.query
-            .join(User)
-            .order_by(VideoPost.created_at.desc())
-            .all()
-        )
+        return VideoPost.query.join(User).order_by(VideoPost.created_at.desc()).all()

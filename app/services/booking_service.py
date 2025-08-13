@@ -1,7 +1,8 @@
-
-from ..models import db, Room, Car, RoomBooking, CarRental
-from sqlalchemy import and_
 from datetime import datetime
+
+from sqlalchemy import and_
+
+from ..models import Car, CarRental, Room, RoomBooking, db
 
 
 class BookingService:
@@ -61,7 +62,7 @@ class BookingService:
             return True, "Room booked successfully."
         except Exception as e:
             db.session.rollback()
-            return False, f"Failed to create booking: {str(e)}"
+            return False, f"Failed to create booking: {e!s}"
 
     @staticmethod
     def rent_car(user_id, data):
@@ -112,4 +113,4 @@ class BookingService:
             return True, "Car rented successfully."
         except Exception as e:
             db.session.rollback()
-            return False, f"Failed to create rental: {str(e)}"
+            return False, f"Failed to create rental: {e!s}"

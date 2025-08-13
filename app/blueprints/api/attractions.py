@@ -1,9 +1,10 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, abort, request
 from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
+
+from ...schemas.attraction import AttractionSchema
 from ...services.attraction_service import AttractionService
 from ...utils.response import standardized_response
-from ...schemas.attraction import AttractionSchema
-from marshmallow import ValidationError
 
 attractions_bp = Blueprint("attractions", __name__)
 
@@ -58,9 +59,7 @@ def add_attraction():
     try:
         validated_data = AttractionSchema().load(data)
     except ValidationError as err:
-        return standardized_response(
-            data=err.messages, success=False, status_code=400
-        )
+        return standardized_response(data=err.messages, success=False, status_code=400)
 
     try:
         new_attraction = AttractionService.add_attraction(validated_data, file)
@@ -80,14 +79,10 @@ def update_attraction(attraction_id):
     try:
         validated_data = AttractionSchema(partial=True).load(data)
     except ValidationError as err:
-        return standardized_response(
-            data=err.messages, success=False, status_code=400
-        )
+        return standardized_response(data=err.messages, success=False, status_code=400)
 
     try:
-        attraction = AttractionService.update_attraction(
-            attraction_id, validated_data
-        )
+        attraction = AttractionService.update_attraction(attraction_id, validated_data)
         return standardized_response(
             data=attraction.to_dict(),
             message="Attraction updated successfully.",
@@ -101,9 +96,7 @@ def update_attraction(attraction_id):
 def delete_attraction(attraction_id):
     try:
         AttractionService.delete_attraction(attraction_id)
-        return standardized_response(
-            message="Attraction deleted successfully."
-        )
+        return standardized_response(message="Attraction deleted successfully.")
     except Exception as e:
         abort(500, description=f"Failed to delete attraction. Error: {e}")
 
@@ -114,10 +107,12 @@ def get_attractions_by_category(category_name):
     try:
         attractions = AttractionService.get_attractions_by_category(category_name)
         results = [attraction.to_category_dict() for attraction in attractions]
-        
+
         return standardized_response(
             data=results,
             message=f"Attractions in category '{category_name}' retrieved successfully.",
         )
     except Exception as e:
-        abort(500, description=f"Failed to retrieve attractions by category. Error: {e}")
+        abort(
+            500, description=f"Failed to retrieve attractions by category. Error: {e}"
+        )

@@ -1,5 +1,6 @@
 import json
-from sqlalchemy.types import TypeDecorator, TEXT
+
+from sqlalchemy.types import TEXT, TypeDecorator
 
 
 class JSONEncodedDict(TypeDecorator):

@@ -1,6 +1,8 @@
-from ..models import db, Attraction
-from werkzeug.utils import secure_filename
 import os
+
+from werkzeug.utils import secure_filename
+
+from ..models import Attraction, db
 
 
 class AttractionService:
@@ -31,6 +33,7 @@ class AttractionService:
         attraction = db.session.get(Attraction, attraction_id)
         if not attraction:
             from flask import abort
+
             abort(404, description="Attraction not found.")
         return attraction
 
@@ -65,6 +68,7 @@ class AttractionService:
         attraction = db.session.get(Attraction, attraction_id)
         if not attraction:
             from flask import abort
+
             abort(404, description="Attraction not found.")
         for key, value in data.items():
             if hasattr(attraction, key):
@@ -77,6 +81,7 @@ class AttractionService:
         attraction = db.session.get(Attraction, attraction_id)
         if not attraction:
             from flask import abort
+
             abort(404, description="Attraction not found.")
         db.session.delete(attraction)
         db.session.commit()
@@ -84,8 +89,6 @@ class AttractionService:
     @staticmethod
     def get_attractions_by_category(category_name):
         """Get attractions by category name using case-insensitive search"""
-        query = Attraction.query.filter(
-            Attraction.category.ilike(f"%{category_name}%")
-        )
+        query = Attraction.query.filter(Attraction.category.ilike(f"%{category_name}%"))
         attractions = query.order_by(Attraction.name).all()
         return attractions

@@ -1,6 +1,7 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
-from ..models import db, User
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from ..models import User, db
 
 
 class AuthService:
@@ -8,7 +9,7 @@ class AuthService:
     def register_user(username, password, email=None):
         if User.query.filter_by(username=username).first():
             return None, "User already exists."
-        
+
         if email and User.query.filter_by(email=email).first():
             return None, "Email already exists."
 

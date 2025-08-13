@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from . import db
 
 
@@ -15,7 +16,9 @@ class VideoPost(db.Model):
     duration = db.Column(db.Integer)  # in seconds
     file_size = db.Column(db.Integer)  # in bytes
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     # Relationship to User
     user = db.relationship("User", backref="video_posts")

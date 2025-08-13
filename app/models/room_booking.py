@@ -1,5 +1,6 @@
-from . import db
 from datetime import datetime, timezone
+
+from . import db
 
 
 class RoomBooking(db.Model):
@@ -11,7 +12,9 @@ class RoomBooking(db.Model):
     date_start = db.Column(db.Date, nullable=False)
     date_end = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    status = db.Column(db.String(20), default="active", nullable=False)  # active, cancelled
+    status = db.Column(
+        db.String(20), default="active", nullable=False
+    )  # active, cancelled
 
     # Relationships
     user = db.relationship("User", backref="room_bookings")

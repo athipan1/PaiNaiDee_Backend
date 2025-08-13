@@ -1,9 +1,10 @@
-from flask import Blueprint, request, abort
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, abort, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from marshmallow import ValidationError
+
+from ...schemas.booking import CarRentalSchema, RoomBookingSchema
 from ...services.booking_service import BookingService
 from ...utils.response import standardized_response
-from ...schemas.booking import RoomBookingSchema, CarRentalSchema
-from marshmallow import ValidationError
 
 booking_bp = Blueprint("booking", __name__)
 

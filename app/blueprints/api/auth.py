@@ -1,8 +1,9 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, abort, request
+from marshmallow import ValidationError
+
+from ...schemas.auth import LoginSchema, RegisterSchema
 from ...services.auth_service import AuthService
 from ...utils.response import standardized_response
-from ...schemas.auth import RegisterSchema, LoginSchema
-from marshmallow import ValidationError
 
 auth_bp = Blueprint("auth", __name__)
 

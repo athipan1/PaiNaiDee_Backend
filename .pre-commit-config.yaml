@@ -1,0 +1,154 @@
+# Pre-commit hooks configuration for PaiNaiDee Backend
+# Run `pre-commit install` to set up the git hook scripts
+# Run `pre-commit run --all-files` to run all hooks on all files
+
+repos:
+  # Pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(migrations/|src_backup/)
+      - id: end-of-file-fixer
+        exclude: ^(migrations/|src_backup/)
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+        exclude: ^(migrations/|src_backup/)
+      - id: check-docstring-first
+        exclude: ^(migrations/|src_backup/|tests/)
+
+  # Ruff linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.5
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(migrations/|src_backup/)
+      # Run the formatter
+      - id: ruff-format
+        exclude: ^(migrations/|src_backup/)
+
+  # Black code formatting (alternative to ruff-format, choose one)
+  # - repo: https://github.com/psf/black
+  #   rev: 23.7.0
+  #   hooks:
+  #     - id: black
+  #       language_version: python3
+  #       exclude: ^(migrations/|src_backup/)
+
+  # isort import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+        exclude: ^(migrations/|src_backup/)
+
+  # Security checks with bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+        exclude: ^(tests/|migrations/|src_backup/)
+
+  # Docker file linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        entry: hadolint
+
+  # Check for common security issues
+  - repo: https://github.com/PyCQA/safety
+    rev: 3.0.1
+    hooks:
+      - id: safety
+        args: [--ignore=70612]  # Ignore jinja2 vulnerability (if using safe version)
+
+  # Check requirements.txt
+  - repo: https://github.com/lucas-c/pre-commit-hooks
+    rev: v1.5.4
+    hooks:
+      - id: remove-crlf
+      - id: remove-tabs
+        exclude: ^(migrations/|src_backup/|\.gitignore)
+
+  # Local hooks for project-specific checks
+  - repo: local
+    hooks:
+      # Run tests before commit
+      - id: tests
+        name: run tests
+        entry: python -m pytest tests/ -x -v
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+      # Check that new migrations are properly named
+      - id: migration-check
+        name: check migration naming
+        entry: python -c "
+import os
+import re
+migration_dir = 'migrations/versions'
+if os.path.exists(migration_dir):
+    files = [f for f in os.listdir(migration_dir) if f.endswith('.py')]
+    for f in files:
+        if not re.match(r'^[0-9a-f]{12}_.*\.py$', f):
+            print(f'Migration file {f} does not follow naming convention')
+            exit(1)
+print('Migration naming is correct')
+"
+        language: system
+        files: ^migrations/versions/.*\.py$
+        pass_filenames: false
+
+      # Ensure no debugging statements in production code
+      - id: no-debug
+        name: check for debug statements
+        entry: python -c "
+import re
+import sys
+debug_patterns = [
+    r'import pdb',
+    r'pdb\.set_trace\(\)',
+    r'import ipdb',
+    r'ipdb\.set_trace\(\)',
+    r'breakpoint\(\)',
+    r'print\(',  # Can be enabled/disabled based on preference
+]
+for file_path in sys.argv[1:]:
+    with open(file_path, 'r') as f:
+        content = f.read()
+        for i, line in enumerate(content.split('\n'), 1):
+            for pattern in debug_patterns[:-1]:  # Exclude print for now
+                if re.search(pattern, line):
+                    print(f'{file_path}:{i}: Found debug statement: {line.strip()}')
+                    sys.exit(1)
+"
+        language: system
+        files: ^app/.*\.py$
+        pass_filenames: true
+
+# Configuration for specific tools
+ci:
+    autofix_commit_msg: |
+        [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+        for more information, see https://pre-commit.ci
+    autofix_prs: true
+    autoupdate_branch: ''
+    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false

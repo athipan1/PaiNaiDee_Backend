@@ -1,8 +1,9 @@
-from flask import Blueprint, request, abort
-from flask_jwt_extended import jwt_required, get_current_user
+from flask import Blueprint, abort, request
+from flask_jwt_extended import get_current_user, jwt_required
 from marshmallow import ValidationError
+
+from ...schemas.video import VideoListSchema, VideoUploadSchema
 from ...services.video_service import VideoService
-from ...schemas.video import VideoUploadSchema, VideoListSchema
 from ...utils.response import standardized_response
 
 videos_bp = Blueprint("videos", __name__)
@@ -18,7 +19,7 @@ def upload_video():
 
     # Get caption from form data
     caption = request.form.get("caption", "")
-    
+
     # Validate caption using schema
     try:
         validated_data = VideoUploadSchema().load({"caption": caption})
@@ -47,9 +48,7 @@ def upload_video():
         return standardized_response(message=message, success=False, status_code=400)
 
     return standardized_response(
-        data=video_post.to_dict(),
-        message=message,
-        status_code=201
+        data=video_post.to_dict(), message=message, status_code=201
     )
 
 
@@ -57,12 +56,11 @@ def upload_video():
 def get_videos():
     """Get all videos for explore feed"""
     videos = VideoService.get_all_videos()
-    
+
     # Serialize videos using schema
     schema = VideoListSchema(many=True)
     videos_data = schema.dump([video.to_dict() for video in videos])
-    
+
     return standardized_response(
-        data=videos_data,
-        message="Videos retrieved successfully"
+        data=videos_data, message="Videos retrieved successfully"
     )
