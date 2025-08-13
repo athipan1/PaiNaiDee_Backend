@@ -1,9 +1,12 @@
 # PaiNaiDee Backend API 🇹🇭
 
-[![Tests](https://img.shields.io/badge/tests-82%20passing-green.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-132%20passing-green.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/flask-3.1.1-blue.svg)](https://flask.palletsprojects.com/)
+[![SQLAlchemy](https://img.shields.io/badge/sqlalchemy-2.0.41-blue.svg)](https://sqlalchemy.org)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-13%2B-blue.svg)](https://postgresql.org)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://img.shields.io/badge/ci-github%20actions-green.svg)](https://github.com/athipan1/PaiNaiDee_Backend/actions)
 
 ## 🚀 Deploy บน Vercel 🚀
 
@@ -121,9 +124,18 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
 - **⭐ Review & Rating System**: Users can rate attractions (1-5 stars) and leave detailed reviews
 - **🏨 Booking System**: Book accommodations (rooms) and transportation (car rentals) at attractions
 - **🎥 Video Content**: Upload and manage video content related to attractions
-- **🔍 Advanced Search**: Search attractions by name, location, category with pagination support
+- **🔍 Advanced Search**: Multi-language search with trigram similarity, autocomplete, and ranking
+- **📍 Location Services**: Nearby attractions with geospatial queries and distance calculations
 - **📊 Analytics Dashboard**: Real-time API usage analytics and monitoring
 - **🗺️ 3D Map Integration**: Ready for 3D map visualization (via separate map service)
+
+### Search Features (New!)
+- **🔤 Text Normalization**: Thai and English text processing with stop word filtering
+- **🎯 Smart Search**: Similarity-based search using PostgreSQL trigram matching
+- **⚡ Autocomplete**: Fast prefix-based suggestions for location and attraction names
+- **📏 Proximity Search**: Find attractions within specified radius using PostGIS
+- **🏆 Result Ranking**: Configurable scoring based on popularity, freshness, and relevance
+- **🔧 Feature Flags**: Toggle search features on/off via environment configuration
 
 ### Technical Features
 - **RESTful API Design**: Clean, consistent API endpoints following REST principles
@@ -132,10 +144,26 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
 - **Error Handling**: Comprehensive error handling with standardized response format
 - **CORS Support**: Cross-origin resource sharing for frontend integration
 - **Docker Support**: Complete containerization with Docker Compose
-- **Comprehensive Testing**: 82 test cases covering all major functionality
+- **Comprehensive Testing**: 132+ test cases covering all major functionality
 - **Analytics Middleware**: Automatic request tracking and performance monitoring
+- **Code Quality**: Automated linting, formatting, and pre-commit hooks
+- **Database Migrations**: Alembic-based schema versioning and deployment
 
 ## 🏗️ Architecture
+
+PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive backend API for a tourism application that helps users discover, explore, and book attractions in Thailand. Built with Flask, SQLAlchemy, and PostgreSQL, it provides a robust foundation for travel applications.
+
+### Tech Stack
+- **Backend Framework**: Flask 3.1.1 with SQLAlchemy 2.0.41
+- **Database**: PostgreSQL 13+ with pg_trgm extension for advanced search
+- **Authentication**: JWT-based with Flask-JWT-Extended
+- **Search**: Full-text search with trigram similarity and GIN indexes
+- **Testing**: pytest with 132+ test cases
+- **Code Quality**: ruff, black, pre-commit hooks
+- **Migration**: Alembic for database versioning
+- **Deployment**: Docker, Vercel, Hugging Face Spaces
+
+### System Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -148,13 +176,58 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
                     ┌─────────────▼─────────────┐
                     │     Flask API Server      │
                     │   (PaiNaiDee Backend)     │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   Search Engine     │  │
+                    │  │  (pg_trgm + GIN)    │  │
+                    │  └─────────────────────┘  │
                     └─────────────┬─────────────┘
                                   │
                     ┌─────────────▼─────────────┐
                     │    PostgreSQL Database    │
                     │  (Attractions, Users,     │
-                    │   Reviews, Bookings)      │
+                    │   Reviews, Bookings,      │
+                    │   Search Indexes)         │
                     └───────────────────────────┘
+```
+
+### Project Structure
+
+```
+app/                          # Main application package
+├── __init__.py              # Flask app factory (create_app)
+├── config.py                # Configuration management with validation
+├── extensions.py            # Flask extensions (db, migrate, cache)
+├── blueprints/              # API route blueprints
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── search.py        # Search and autocomplete endpoints
+│   │   ├── posts.py         # Content management
+│   │   └── locations.py     # Location-based queries
+├── models/                  # SQLAlchemy models
+│   ├── __init__.py
+│   ├── attraction.py
+│   ├── user.py
+│   ├── review.py
+│   └── ...
+├── services/                # Business logic layer
+│   ├── search_service.py    # Search algorithms and ranking
+│   ├── post_service.py      # Content management
+│   └── location_service.py  # Geospatial operations
+└── utils/                   # Utility functions
+    ├── text_normalization.py # Thai/English text processing
+    ├── scoring.py           # Search result scoring
+    └── distance.py          # Geographic calculations
+
+migrations/                   # Alembic database migrations
+├── versions/                # Migration scripts
+└── alembic.ini             # Alembic configuration
+
+seed/                        # Database seeding scripts
+tests/                       # Test suite (132+ tests)
+requirements.txt            # Python dependencies
+pyproject.toml              # Tool configuration (ruff, black)
+.pre-commit-config.yaml     # Code quality hooks
 ```
 
 ---
@@ -196,18 +269,35 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
    ```
 
 4. **Configuration:**
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory (see `.env.example` for full reference):
    ```env
-   # Flask Configuration
+   # Application Configuration
+   APP_ENV=development
+   LOG_LEVEL=INFO
    SECRET_KEY=your-super-secret-key-here
    FLASK_ENV=development
 
    # Database Configuration
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/painaidee_db
+   # Or individual components:
    DB_HOST=localhost
    DB_NAME=painaidee_db
    DB_USER=postgres
    DB_PASSWORD=your_password
    DB_PORT=5432
+
+   # Search Configuration
+   SEARCH_RANK_WEIGHTS={"popularity": 0.4, "freshness": 0.3, "similarity": 0.3}
+   MAX_NEARBY_RADIUS_KM=50
+   TRIGRAM_SIM_THRESHOLD=0.3
+   FEATURE_AUTOCOMPLETE=true
+   FEATURE_NEARBY=true
+
+   # Optional: Redis for caching
+   REDIS_URL=redis://localhost:6379/0
+
+   # Optional: OpenAI for AI features
+   OPENAI_API_KEY=your-openai-api-key
    ```
 
 5. **Running the Application:**
@@ -218,8 +308,27 @@ PaiNaiDee ("ไปไหนดี" - "Where to go?" in Thai) is a comprehensive 
    # Or use Flask CLI
    flask run
 
+   # With specific configuration
+   FLASK_ENV=development python run.py
+
    # API will be available at http://localhost:5000
    ```
+
+### Search Development Roadmap
+
+#### Phase 1: Basic Search (Current Implementation)
+- ✅ Text normalization for Thai and English
+- ✅ Trigram-based similarity search
+- ✅ Basic ranking with popularity and freshness
+- ✅ Autocomplete with prefix matching
+- ✅ Nearby location search with distance filtering
+
+#### Phase 2: Advanced Search (Future)
+- 🔄 Elasticsearch integration for full-text search
+- 🔄 Machine learning-based recommendation engine
+- 🔄 Semantic search with vector embeddings
+- 🔄 Multi-modal search (text + images)
+- 🔄 Real-time search analytics and A/B testing
 
 ### Docker Deployment
 
@@ -287,9 +396,11 @@ POST   /api/book-room                # Book room (auth required)
 POST   /api/rent-car                 # Rent car (auth required)
 ```
 
-#### Search
+#### Search & Discovery
 ```http
-GET    /api/search                   # Search attractions
+GET    /api/search?q={query}           # Advanced search with ranking
+GET    /api/autocomplete?q={prefix}    # Autocomplete suggestions  
+GET    /api/locations/nearby           # Nearby attractions by location
 ```
 
 #### Videos
@@ -324,16 +435,26 @@ curl -X POST "http://localhost:5000/api/reviews" \
   }'
 ```
 
-#### Search Attractions
+#### Advanced Search with Ranking
 ```bash
-curl "http://localhost:5000/api/search?q=temple&location=Bangkok"
+curl "http://localhost:5000/api/search?q=temple&limit=10&min_rating=4.0"
+```
+
+#### Autocomplete for Location Names
+```bash
+curl "http://localhost:5000/api/autocomplete?q=bang&limit=5"
+```
+
+#### Find Nearby Attractions
+```bash
+curl "http://localhost:5000/api/locations/nearby?lat=13.7563&lng=100.5018&radius=10"
 ```
 
 For complete API documentation, see the [API Reference](docs/api-reference.md) (when available).
 
 ## 🧪 Testing
 
-The project includes comprehensive testing with 82 test cases covering all major functionality.
+The project includes comprehensive testing with 132+ test cases covering all major functionality.
 
 ### Running Tests
 ```bash
@@ -344,21 +465,25 @@ python -m pytest
 python -m pytest -v
 
 # Run specific test file
-python -m pytest tests/test_reviews.py -v
+python -m pytest tests/test_search.py -v
 
 # Run tests with coverage
-python -m pytest --cov=src tests/
+python -m pytest --cov=app tests/
 
-# Run specific test
+# Run specific test category
 python -m pytest tests/test_app.py::test_get_all_attractions -v
+
+# Run search-related tests
+python -m pytest tests/ -k "search" -v
 ```
 
 ### Test Categories
-- **Unit Tests**: Service layer logic and utilities
-- **Integration Tests**: API endpoint functionality
-- **Authentication Tests**: JWT and user authorization
+- **Unit Tests**: Service layer logic and utilities (text processing, scoring, etc.)
+- **Integration Tests**: API endpoint functionality and database operations
+- **Authentication Tests**: JWT and user authorization flows
 - **Database Tests**: Model relationships and constraints
 - **Analytics Tests**: Dashboard and monitoring features
+- **Search Tests**: Search algorithms, ranking, and text processing
 
 ## 💾 Database Schema
 
@@ -385,21 +510,32 @@ For detailed schema information, see [Database Documentation](docs/database.md) 
 
 ### Project Structure
 ```
-src/
-├── app.py                 # Flask application factory
-├── config.py             # Configuration settings
-├── database.py           # Database initialization
-├── models/               # SQLAlchemy models
-├── routes/               # API route blueprints
-├── services/             # Business logic layer
-├── schemas/              # Marshmallow validation schemas
-├── utils/                # Utility functions and middleware
-└── errors.py             # Error handlers
+app/                         # Main application package
+├── __init__.py             # Flask app factory
+├── config.py               # Configuration with validation
+├── extensions.py           # Flask extensions initialization
+├── blueprints/             # API blueprints
+│   └── api/                # API version 1
+│       ├── search.py       # Search endpoints
+│       ├── posts.py        # Content management
+│       └── locations.py    # Location services
+├── models/                 # SQLAlchemy models
+├── services/               # Business logic layer
+│   ├── search_service.py   # Search algorithms
+│   ├── post_service.py     # Content operations
+│   └── location_service.py # Geospatial services
+├── utils/                  # Utility functions
+│   ├── text_normalization.py
+│   ├── scoring.py
+│   └── distance.py
+└── schemas/                # Validation schemas
 
-tests/                    # Test files
-requirements.txt          # Python dependencies
-docker-compose.yml        # Docker configuration
-Dockerfile               # Docker build instructions
+migrations/                 # Alembic migrations
+seed/                      # Database seed scripts
+tests/                     # Test suite
+requirements.txt           # Dependencies
+pyproject.toml            # Tool configuration
+.pre-commit-config.yaml   # Code quality hooks
 ```
 
 ### Adding New Features
