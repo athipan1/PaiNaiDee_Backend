@@ -19,6 +19,7 @@ psycopg2-binary==2.9.10
 Pygments==2.19.2
 PyJWT==2.10.1
 pytest==8.4.1
+pytest-asyncio==1.1.0
 python-dotenv==1.1.1
 requests==2.32.3
 SQLAlchemy==2.0.41

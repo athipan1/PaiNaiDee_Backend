@@ -56,6 +56,42 @@ class StructuredLogger:
             "radiusKm": radius_km,
             "resultCount": result_count
         })
+    
+    def post_liked(self, post_id: str, user_id: str) -> None:
+        """Log post.liked event"""
+        self.log_event("post.liked", {
+            "postId": post_id,
+            "userId": user_id
+        })
+    
+    def post_unliked(self, post_id: str, user_id: str) -> None:
+        """Log post.unliked event"""
+        self.log_event("post.unliked", {
+            "postId": post_id,
+            "userId": user_id
+        })
+    
+    def post_commented(self, post_id: str, user_id: str, comment_id: str) -> None:
+        """Log post.commented event"""
+        self.log_event("post.commented", {
+            "postId": post_id,
+            "userId": user_id,
+            "commentId": comment_id
+        })
+    
+    def comment_updated(self, comment_id: str, user_id: str) -> None:
+        """Log comment.updated event"""
+        self.log_event("comment.updated", {
+            "commentId": comment_id,
+            "userId": user_id
+        })
+    
+    def comment_deleted(self, comment_id: str, user_id: str) -> None:
+        """Log comment.deleted event"""
+        self.log_event("comment.deleted", {
+            "commentId": comment_id,
+            "userId": user_id
+        })
 
 
 # Global logger instance

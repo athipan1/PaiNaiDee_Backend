@@ -70,6 +70,40 @@ class PostMedia(Base):
         return f"<PostMedia(id={self.id}, post_id={self.post_id}, type='{self.media_type}')>"
 
 
+class PostLike(Base):
+    """Post like model for community engagement"""
+    __tablename__ = "post_likes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Text, nullable=False)  # TODO: Link to user system
+    created_at = Column(DateTime, default=func.now())
+
+    # Relationships
+    post = relationship("Post", backref="likes")
+
+    def __repr__(self):
+        return f"<PostLike(id={self.id}, post_id={self.post_id}, user_id='{self.user_id}')>"
+
+
+class PostComment(Base):
+    """Post comment model for community engagement"""
+    __tablename__ = "post_comments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Text, nullable=False)  # TODO: Link to user system
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    # Relationships
+    post = relationship("Post", backref="comments")
+
+    def __repr__(self):
+        return f"<PostComment(id={self.id}, post_id={self.post_id}, user_id='{self.user_id}')>"
+
+
 # Indexes for performance
 Index('idx_locations_name_trgm', Location.name, postgresql_using='gin', postgresql_ops={'name': 'gin_trgm_ops'})
 Index('idx_locations_aliases', Location.aliases, postgresql_using='gin')
@@ -78,3 +112,8 @@ Index('idx_posts_location_id', Post.location_id)
 Index('idx_posts_created_at', Post.created_at)
 Index('idx_posts_like_count', Post.like_count)
 Index('idx_post_media_post_id', PostMedia.post_id)
+Index('idx_post_likes_post_id', PostLike.post_id)
+Index('idx_post_likes_user_id', PostLike.user_id)
+Index('idx_post_comments_post_id', PostComment.post_id)
+Index('idx_post_comments_user_id', PostComment.user_id)
+Index('idx_post_comments_created_at', PostComment.created_at)
