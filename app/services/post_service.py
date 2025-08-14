@@ -5,7 +5,7 @@ import uuid
 
 from app.db.models import Post, PostMedia, Location
 from app.utils.ranking import haversine_distance
-from app.schemas.posts import PostCreate, PostResponse, PostUploadResponse, PostMediaCreate
+from app.schemas.posts import PostCreate, PostResponse, PostUploadResponse, PostMediaCreate, PostMediaResponse
 from app.core.logging import logger
 
 
@@ -82,6 +82,22 @@ class PostService:
         await db.commit()
         await db.refresh(post)
         
+        # Get media for response
+        media_query = select(PostMedia).where(PostMedia.post_id == post.id).order_by(PostMedia.ordering)
+        media_result = await db.execute(media_query)
+        post_media = media_result.scalars().all()
+        
+        media_responses = [
+            PostMediaResponse(
+                id=str(media.id),
+                media_type=media.media_type,
+                url=media.url,
+                thumb_url=media.thumb_url,
+                ordering=media.ordering
+            )
+            for media in post_media
+        ]
+        
         # Log the upload event
         logger.post_uploaded(
             post_id=str(post.id),
@@ -100,6 +116,7 @@ class PostService:
             lng=post.lng,
             like_count=post.like_count,
             comment_count=post.comment_count,
+            media=media_responses,
             created_at=post.created_at,
             updated_at=post.updated_at
         )
@@ -201,6 +218,22 @@ class PostService:
         if not post:
             return None
         
+        # Get media for response
+        media_query = select(PostMedia).where(PostMedia.post_id == post_uuid).order_by(PostMedia.ordering)
+        media_result = await db.execute(media_query)
+        post_media = media_result.scalars().all()
+        
+        media_responses = [
+            PostMediaResponse(
+                id=str(media.id),
+                media_type=media.media_type,
+                url=media.url,
+                thumb_url=media.thumb_url,
+                ordering=media.ordering
+            )
+            for media in post_media
+        ]
+        
         return PostResponse(
             id=str(post.id),
             user_id=post.user_id,
@@ -211,6 +244,7 @@ class PostService:
             lng=post.lng,
             like_count=post.like_count,
             comment_count=post.comment_count,
+            media=media_responses,
             created_at=post.created_at,
             updated_at=post.updated_at
         )

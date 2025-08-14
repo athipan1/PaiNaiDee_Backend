@@ -6,7 +6,7 @@ import asyncio
 from app.core.config import settings
 from app.core.logging import logger
 from app.db.session import init_db
-from app.api import routes_search, routes_locations, routes_posts
+from app.api import routes_search, routes_locations, routes_posts, routes_engagement
 
 
 @asynccontextmanager
@@ -93,6 +93,7 @@ This implementation focuses on:
     app.include_router(routes_search.router)
     app.include_router(routes_locations.router)
     app.include_router(routes_posts.router)
+    app.include_router(routes_engagement.router)
     
     @app.get("/", tags=["health"])
     async def root():
@@ -105,6 +106,7 @@ This implementation focuses on:
                 "search": "/api/search",
                 "locations": "/api/locations",
                 "posts": "/api/posts",
+                "engagement": "/api/posts/{id}/like, /api/posts/{id}/comments",
                 "documentation": "/docs",
                 "openapi": "/openapi.json"
             },
@@ -113,7 +115,9 @@ This implementation focuses on:
                 "Keyword expansion via static mapping",
                 "Geographic proximity matching",
                 "Popularity + recency ranking",
-                "Auto-location matching for posts"
+                "Auto-location matching for posts",
+                "Like and comment system for posts",
+                "Real-time engagement analytics"
             ],
             "phase": "1",
             "next_phase": "Semantic search with embeddings"

@@ -11,10 +11,19 @@ class PostMediaCreate(BaseModel):
     ordering: int = Field(default=0, description="Media ordering")
 
 
+class PostMediaResponse(BaseModel):
+    """Schema for post media response"""
+    id: str = Field(..., description="Media ID")
+    media_type: str = Field(..., description="Media type (image/video)")
+    url: str = Field(..., description="Media URL")
+    thumb_url: Optional[str] = Field(None, description="Thumbnail URL")
+    ordering: int = Field(..., description="Media ordering")
+
+
 class PostCreate(BaseModel):
     """Schema for creating a post"""
     caption: Optional[str] = Field(None, max_length=2000, description="Post caption")
-    tags: List[str] = Field(default=[], description="Post tags")
+    tags: List[str] = Field(default=[], description="Post hashtags")
     location_id: Optional[str] = Field(None, description="Associated location ID")
     lat: Optional[float] = Field(None, ge=-90, le=90, description="Latitude")
     lng: Optional[float] = Field(None, ge=-180, le=180, description="Longitude")
@@ -26,12 +35,13 @@ class PostResponse(BaseModel):
     id: str = Field(..., description="Post ID")
     user_id: str = Field(..., description="User ID")
     caption: Optional[str] = Field(None, description="Post caption")
-    tags: List[str] = Field(default=[], description="Post tags")
+    tags: List[str] = Field(default=[], description="Post hashtags")
     location_id: Optional[str] = Field(None, description="Location ID")
     lat: Optional[float] = Field(None, description="Latitude")
     lng: Optional[float] = Field(None, description="Longitude")
     like_count: int = Field(..., description="Number of likes")
     comment_count: int = Field(..., description="Number of comments")
+    media: List[PostMediaResponse] = Field(default=[], description="Post media")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 

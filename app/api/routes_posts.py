@@ -5,6 +5,7 @@ import json
 
 from app.db.session import get_async_db
 from app.services.post_service import post_service
+from app.services.storage_service import storage_service
 from app.schemas.posts import PostCreate, PostUploadResponse, PostMediaCreate
 
 router = APIRouter(prefix="/api", tags=["posts"])
@@ -60,7 +61,7 @@ async def create_post(
             except (json.JSONDecodeError, ValueError):
                 raise HTTPException(status_code=400, detail="Invalid tags format. Must be JSON array.")
         
-        # Process media files (in a real implementation, you'd upload to cloud storage)
+        # Process media files and upload to cloud storage
         media_list = []
         for i, file in enumerate(media_files):
             # Validate file type
@@ -73,18 +74,22 @@ async def create_post(
                     detail=f"File {file.filename} must be an image or video"
                 )
             
-            # TODO: Upload to cloud storage (S3, GCS, etc.)
-            # For now, create dummy URLs
-            media_type = "image" if file.content_type.startswith('image/') else "video"
-            fake_url = f"https://storage.example.com/posts/{current_user_id}/{file.filename}"
-            fake_thumb_url = f"https://storage.example.com/posts/{current_user_id}/thumb_{file.filename}" if media_type == "video" else None
-            
-            media_list.append(PostMediaCreate(
-                media_type=media_type,
-                url=fake_url,
-                thumb_url=fake_thumb_url,
-                ordering=i
-            ))
+            # Upload to cloud storage
+            try:
+                file_url, thumb_url = await storage_service.upload_media(
+                    file, current_user_id
+                )
+                
+                media_type = "image" if file.content_type.startswith('image/') else "video"
+                
+                media_list.append(PostMediaCreate(
+                    media_type=media_type,
+                    url=file_url,
+                    thumb_url=thumb_url,
+                    ordering=i
+                ))
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         
         if not media_list:
             raise HTTPException(status_code=400, detail="At least one media file is required")
