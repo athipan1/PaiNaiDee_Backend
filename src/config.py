@@ -37,9 +37,15 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
 
 
+class ProductionConfig(Config):
+    # Production uses DATABASE_URL env var for Railway/Heroku compatibility
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or DevelopmentConfig().SQLALCHEMY_DATABASE_URI
+
+
 config = {
     "development": DevelopmentConfig,
     "docker": DockerConfig,
     "testing": TestingConfig,
+    "production": ProductionConfig,
     "default": DevelopmentConfig,
 }
