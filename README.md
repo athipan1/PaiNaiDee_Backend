@@ -34,6 +34,44 @@ DB_PORT=5432
 
 ---
 
+## 🚆 Deploy บน Railway
+
+<p align="center">
+  <a href="https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fathipan1%2FPaiNaiDee_Backend">
+    <img src="https://railway.app/button.svg" alt="Deploy on Railway" />
+  </a>
+</p>
+
+### สรุปการติดตั้งสั้น ๆ (ภาษาไทย)
+- Environment variables ที่ควรตั้ง (อย่างน้อย):
+  - SECRET_KEY — คีย์ลับสำหรับ Flask / JWT
+  - DATABASE_URL — Connection string ของ PostgreSQL (ถ้าใช้ DB)
+  - OPENAI_API_KEY — (ถ้าโปรเจกต์เรียกใช้งาน OpenAI)
+  - FLASK_ENV — production (หรือไม่ใส่ก็ได้)
+  - (Railway จะเซ็ตให้) PORT — แอปต้องอ่านค่า PORT จาก environment
+  - ตัวแปรเพิ่มเติมที่โค้ดเรียกใช้งาน เช่น S3_* หรืออื่น ๆ — ตรวจสอบไฟล์ config
+
+- วิธีเข้าถึง API หลัง deploy:
+  1. เข้าไปที่ Railway project dashboard → คัดลอก URL (เช่น https://<your-project>.up.railway.app)
+  2. เรียก endpoint เช่น GET https://<your-project>.up.railway.app/ หรือ https://<your-project>.up.railway.app/api/...
+
+- ขั้นตอนหลัง deploy (แนะนำ):
+  1. ตรวจสอบให้แน่ใจว่าแอปอ่านพอร์ตจาก environment:
+     - ตัวอย่างใน wsgi.py: port = int(os.environ.get("PORT", 5000))
+  2. ใช้ WSGI server เช่น gunicorn และเพิ่ม Procfile:
+     - ตัวอย่าง Procfile: web: gunicorn wsgi:app --workers 2 --bind 0.0.0.0:$PORT
+     - เพิ่ม gunicorn ใน requirements.txt
+  3. หากใช้ฐานข้อมูล:
+     - เชื่อมต่อ Railway PostgreSQL หรือใส่ DATABASE_URL ของ DB
+     - รัน migrations / สคริปต์สร้างตาราง (เช่น: python init_db.py หรือ flask db upgrade)
+  4. ตรวจสอบ logs บน Railway (View Logs) เพื่อดูข้อผิดพลาดหลัง deploy
+
+- หมายเหตุเทคนิค:
+  - เพิ่มไฟล์ wsgi.py ที่เปิดตัวแปร `app` ในระดับโมดูล เพื่อให้ gunicorn เรียกใช้งานได้
+  - ตรวจสอบ dependencies ใน requirements.txt (gunicorn, psycopg2-binary เป็นต้น)
+
+---
+
 ## 🤗 Deploy บน Hugging Face Spaces 🤗
 
 [![Deploy to Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-lg.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend)
