@@ -2,9 +2,10 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./PaiNaiDee_Backend
+      context: .
     ports:
       - "5000:5000"
+      - "8000:8000"
     environment:
       - FLASK_ENV=docker
       - DB_HOST=db
@@ -19,7 +20,7 @@ services:
         pip install psycopg2-binary &&
         python init_db.py &&
         python migrate_image_urls.py &&
-        python run.py
+        python run_fastapi.py
       "
 
   db:
