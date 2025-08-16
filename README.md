@@ -74,7 +74,9 @@ DB_PORT=5432
 
 ## 🤗 Deploy บน Hugging Face Spaces 🤗
 
-[![Deploy to Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces-lg.svg)](https://huggingface.co/spaces/new?template=docker&repo=athipan1/PaiNaiDee_Backend)
+[![Deploy on HF Spaces](https://huggingface.co/spaces/button)](https://huggingface.co/new-space?template=athipan1/PaiNaiDee_Backend)
+
+คลิกปุ่มด้านบนเพื่อสร้าง Hugging Face Space ใหม่จากรีโปนี้โดยใช้เทมเพลต Docker. รีโปนี้เป็น public และมีไฟล์ Dockerfile ที่ root. แอปจะฟังที่พอร์ต 7860; health endpoint: /health.
 
 ### Setup Instructions / คำแนะนำการติดตั้ง:
 
