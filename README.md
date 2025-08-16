@@ -205,11 +205,16 @@ docker build -t painaidee-backend:latest .
 3. Run Docker locally:
 
 ```bash
-docker run -p 7860:7860 painaidee-backend:latest
+# Default mode (FastAPI on port 8000)
+docker run -p 8000:8000 painaidee-backend:latest
+
+# Spaces mode (Flask on port 7860)  
+docker run -p 7860:7860 painaidee-backend:latest python app.py
 ```
 
-- Health endpoint: http://localhost:7860/health
-- The app listens on port 7860.
+- **FastAPI mode**: http://localhost:8000/docs (API documentation)
+- **Spaces mode**: http://localhost:7860/health (Health endpoint)
+- **Note**: Default Dockerfile CMD runs FastAPI on port 8000. For Hugging Face Spaces-style demo, use the second command to run on port 7860.
 
 ---
 
@@ -231,11 +236,203 @@ docker build -t painaidee-backend:latest .
 3. รัน Docker:
 
 ```bash
-docker run -p 7860:7860 painaidee-backend:latest
+# โหมดปกติ (FastAPI ที่พอร์ต 8000)
+docker run -p 8000:8000 painaidee-backend:latest
+
+# โหมด Spaces (Flask ที่พอร์ต 7860)
+docker run -p 7860:7860 painaidee-backend:latest python app.py
 ```
 
-- ตรวจสุขภาพ: http://localhost:7860/health
-- แอปฟังพอร์ต 7860
+- **โหมด FastAPI**: http://localhost:8000/docs (เอกสาร API)
+- **โหมด Spaces**: http://localhost:7860/health (ตรวจสุขภาพ)
+- **หมายเหตุ**: Dockerfile ค่าเริ่มต้นรัน FastAPI ที่พอร์ต 8000 สำหรับเดโม่สไตล์ Hugging Face Spaces ใช้คำสั่งที่สองเพื่อรันที่พอร์ต 7860
+
+---
+
+## วิธีรันโปรเจกต์ (Local)
+
+### เตรียมสภาพแวดล้อม
+
+1. ติดตั้ง dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. ตั้งค่า environment variables:
+```bash
+cp .env.example .env
+# แก้ไขไฟล์ .env ตามต้องการ (ดูรายละเอียดใน Environment Variables ด้านล่าง)
+```
+
+### รันด้วย FastAPI (แนะนำสำหรับพัฒนา API)
+
+```bash
+# วิธีที่ 1: ใช้สคริปต์พร้อมใช้
+python run_fastapi.py
+
+# วิธีที่ 2: ใช้ uvicorn โดยตรง
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+- **เอกสาร API**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+- **ตัวอย่างค้นหา**: http://localhost:8000/api/search?q=เชียงใหม่
+
+### รันด้วย Flask (WSGI/Production-like)
+
+```bash
+# พัฒนาท้องถิ่น
+python wsgi.py
+
+# Production-style ด้วย gunicorn
+gunicorn wsgi:app --workers 2 --bind 0.0.0.0:5000
+```
+
+- **Health Check**: http://localhost:5000/health
+
+### รันด้วย Docker
+
+#### โหมด FastAPI (ค่าเริ่มต้นของ Dockerfile)
+
+```bash
+# สร้าง image
+docker build -t painaidee-backend:latest .
+
+# รัน container
+docker run -p 8000:8000 painaidee-backend:latest
+
+# เปิดใช้งาน
+# API Docs: http://localhost:8000/docs
+# Health: http://localhost:8000/health
+```
+
+#### โหมด Spaces/Flask (ใช้ไฟล์ app.py ที่พอร์ต 7860)
+
+```bash
+# รัน container ในโหมด Spaces
+docker run -p 7860:7860 painaidee-backend:latest python app.py
+
+# เปิดใช้งาน
+# Health: http://localhost:7860/health
+```
+
+### หมายเหตุเรื่องพอร์ต
+
+- **8000**: FastAPI development server (แนะนำสำหรับพัฒนา API)
+- **5000**: Flask/Gunicorn local server (Production-style testing)
+- **7860**: Hugging Face Spaces/เดโม่ (สำหรับการแสดงผลสาธารณะ)
+
+---
+
+## การใช้งาน API เบื้องต้น
+
+### Health Checks สำหรับแต่ละโหมด
+
+```bash
+# FastAPI mode (port 8000)
+curl -i http://localhost:8000/health
+
+# Flask/WSGI mode (port 5000)  
+curl -i http://localhost:5000/health
+
+# Spaces mode (port 7860)
+curl -i http://localhost:7860/health
+```
+
+### เอกสาร API (FastAPI)
+
+เปิดบราวเซอร์ไปที่: **http://localhost:8000/docs**
+
+### ตัวอย่างการค้นหาเบื้องต้น
+
+```bash
+# ค้นหาสถานที่ (ถ้า FastAPI routes เปิดใช้งาน)
+curl "http://localhost:8000/api/search?q=เชียงใหม่"
+
+# ค้นหาแบบ JSON
+curl -H "Content-Type: application/json" \
+     -d '{"query": "ภูเก็ต", "category": "beach"}' \
+     http://localhost:8000/api/search
+```
+
+### เอกสารฟีเจอร์เพิ่มเติม
+
+สำหรับฟีเจอร์ขั้นสูงและการใช้งานโดยละเอียด:
+
+- 📖 [TALK_API_README.md](TALK_API_README.md) - API แชทและการสนทนา
+- 🔍 [FUZZY_SEARCH_README.md](FUZZY_SEARCH_README.md) - ระบบค้นหาแบบฟัซซี่
+- 📊 [DASHBOARD_README.md](DASHBOARD_README.md) - Dashboard และ Analytics
+- 🏗️ [BACKEND_PHASE1_README.md](BACKEND_PHASE1_README.md) - Architecture Phase 1
+
+---
+
+## How to Run Locally
+
+### Environment Setup
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Configure environment:
+```bash
+cp .env.example .env
+# Edit .env file as needed (see Environment Variables section below)
+```
+
+### FastAPI Development Mode (Recommended for API development)
+
+```bash
+python run_fastapi.py
+# or: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+- **API Docs**: http://localhost:8000/docs
+- **Health**: http://localhost:8000/health
+
+### Flask/WSGI Mode
+
+```bash
+python wsgi.py
+# or: gunicorn wsgi:app --workers 2 --bind 0.0.0.0:5000
+```
+
+- **Health**: http://localhost:5000/health
+
+### Docker
+
+```bash
+# FastAPI mode (default)
+docker build -t painaidee-backend:latest .
+docker run -p 8000:8000 painaidee-backend:latest
+
+# Spaces mode  
+docker run -p 7860:7860 painaidee-backend:latest python app.py
+```
+
+**Port Reference**: 8000=FastAPI dev, 5000=Flask/Gunicorn, 7860=Hugging Face Spaces
+
+---
+
+## Basic API Usage
+
+### Health Checks
+```bash
+curl -i http://localhost:8000/health  # FastAPI
+curl -i http://localhost:5000/health  # Flask
+curl -i http://localhost:7860/health  # Spaces
+```
+
+### API Documentation
+Visit: **http://localhost:8000/docs** (FastAPI mode)
+
+### Search Examples
+```bash
+curl "http://localhost:8000/api/search?q=เชียงใหม่"
+```
+
+For detailed features, see: [TALK_API_README.md](TALK_API_README.md), [FUZZY_SEARCH_README.md](FUZZY_SEARCH_README.md), [DASHBOARD_README.md](DASHBOARD_README.md)
 
 ---
 
