@@ -1,0 +1,17 @@
+{
+  "builder": "NIXPACKS",
+  "deploy": {
+    "startCommand": "gunicorn wsgi:app --workers 2 --bind 0.0.0.0:$PORT",
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "FLASK_ENV": "production",
+        "PYTHON_VERSION": "3.11"
+      }
+    }
+  }
+}

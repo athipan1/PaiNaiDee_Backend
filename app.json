@@ -1,0 +1,64 @@
+{
+  "name": "PaiNaiDee Backend",
+  "description": "Thai Tourism API Backend - A comprehensive backend API for Thai tourism recommendations and attractions",
+  "keywords": ["flask", "python", "tourism", "thailand", "api", "backend"],
+  "website": "https://github.com/athipan1/PaiNaiDee_Backend",
+  "repository": "https://github.com/athipan1/PaiNaiDee_Backend",
+  "logo": "https://raw.githubusercontent.com/athipan1/PaiNaiDee_Backend/main/.github/logo.png",
+  "success_url": "/health",
+  "scripts": {
+    "postdeploy": "python init_db.py && python migrate_image_urls.py"
+  },
+  "env": {
+    "FLASK_ENV": {
+      "description": "Flask environment configuration",
+      "value": "production"
+    },
+    "SECRET_KEY": {
+      "description": "Secret key for Flask sessions and JWT tokens",
+      "generator": "secret"
+    },
+    "DATABASE_URL": {
+      "description": "PostgreSQL database URL (automatically provided by Railway/Heroku)",
+      "required": false
+    },
+    "DB_HOST": {
+      "description": "Database host (leave empty if using DATABASE_URL)",
+      "required": false
+    },
+    "DB_NAME": {
+      "description": "Database name (leave empty if using DATABASE_URL)",
+      "required": false
+    },
+    "DB_USER": {
+      "description": "Database username (leave empty if using DATABASE_URL)",
+      "required": false
+    },
+    "DB_PASSWORD": {
+      "description": "Database password (leave empty if using DATABASE_URL)",
+      "required": false
+    },
+    "DB_PORT": {
+      "description": "Database port (leave empty if using DATABASE_URL)",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0",
+      "as": "DATABASE"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "stack": "heroku-22"
+}
