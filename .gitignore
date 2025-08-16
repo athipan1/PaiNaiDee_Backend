@@ -17,3 +17,4 @@ uploads/videos/*.mkv
 *.db
 /tmp/painaidee.db
 painaidee_colab.db
+fresh_venv/

@@ -1,7 +1,7 @@
 import os
 import json
 from typing import Dict, Any
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
 
@@ -15,6 +15,17 @@ class Settings(BaseSettings):
     db_name: str = Field(default="painaidee_db", env="DB_NAME")
     db_user: str = Field(default="postgres", env="DB_USER")
     db_password: str = Field(default="", env="DB_PASSWORD")
+    
+    # Security
+    secret_key: str | None = Field(default=None, env="SECRET_KEY")
+    
+    # OpenAI/LLM configuration
+    openai_api_key: str | None = Field(default=None, env="OPENAI_API_KEY")
+    openai_api_base: str = Field(default="https://api.openai.com/v1", env="OPENAI_API_BASE")
+    talk_model: str = Field(default="gpt-3.5-turbo", env="TALK_MODEL")
+    talk_max_tokens: int = Field(default=500, env="TALK_MAX_TOKENS")
+    talk_temperature: float = Field(default=0.7, env="TALK_TEMPERATURE")
+    talk_max_context_length: int = Field(default=10, env="TALK_MAX_CONTEXT_LENGTH")
     
     # Search configuration
     search_rank_weights: str = Field(
@@ -38,9 +49,13 @@ class Settings(BaseSettings):
         "https://frontend-painaidee.web.app"
     ]
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    # Pydantic v2 configuration
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False
+    )
     
     @property
     def search_weights(self) -> Dict[str, float]:
