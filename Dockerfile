@@ -5,7 +5,7 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /workspaces/PaiNaiDee_Backend
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
@@ -15,19 +15,15 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the application source code and Spaces entrypoint
-COPY src/ ./src/
-COPY app.py .
-COPY run.py .
-COPY migrate_image_urls.py .
-COPY init_db.py .
+# Copy the application source code for both development and Spaces
+COPY . .
 
-# Expose the port Hugging Face Spaces expects (7860)
-EXPOSE 7860
+# Expose ports for development (FastAPI) and Spaces
+EXPOSE 8000 7860 5000
 
 # Optional healthcheck for Spaces container
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://127.0.0.1:7860/health || exit 1
+  CMD curl -f http://127.0.0.1:8000/health || curl -f http://127.0.0.1:7860/health || exit 1
 
-# Use gunicorn to run the app module created for Spaces (app:app)
-CMD ["gunicorn", "app:app", "--workers", "1", "--bind", "0.0.0.0:7860"]
+# Default command for development (can be overridden by docker-compose)
+CMD ["python", "run_fastapi.py"]

@@ -2,7 +2,7 @@
   "name": "PaiNaiDee Backend Development",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "backend",
-  "workspaceFolder": "/app",
+  "workspaceFolder": "/workspaces/PaiNaiDee_Backend",
   "shutdownAction": "stopCompose",
   
   "features": {
@@ -36,10 +36,14 @@
     }
   },
 
-  "forwardPorts": [5000, 5432, 7860],
+  "forwardPorts": [5000, 8000, 5432, 7860],
   "portsAttributes": {
     "5000": {
       "label": "Flask App",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "FastAPI App",
       "onAutoForward": "notify"
     },
     "5432": {
@@ -53,11 +57,11 @@
   },
 
   "postCreateCommand": "pip install -r requirements.txt",
-  "postStartCommand": "python init_db.py && python migrate_image_urls.py",
+  "postStartCommand": "python run_fastapi.py",
 
   "remoteUser": "root",
   
   "mounts": [
-    "source=${localWorkspaceFolder}/.env,target=/app/.env,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder}/.env,target=/workspaces/PaiNaiDee_Backend/.env,type=bind,consistency=cached"
   ]
 }
