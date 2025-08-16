@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "name": "painaidee-backend",
+  "builds": [
+    {
+      "src": "wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "wsgi.py"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": "production",
+    "SECRET_KEY": "@secret_key",
+    "DATABASE_URL": "@database_url"
+  },
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.11"
+    }
+  },
+  "functions": {
+    "wsgi.py": {
+      "includeFiles": "src/**"
+    }
+  }
+}
