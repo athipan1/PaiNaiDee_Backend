@@ -7,22 +7,22 @@ from contextlib import contextmanager
 
 class StructuredLogger:
     """Structured logging for analytics events"""
-    
+
     def __init__(self, name: str = "painaidee_api"):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.INFO)
-        
+
         # Create formatter for structured JSON logs
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        
+
         # Console handler
         if not self.logger.handlers:
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
-    
+
     def log_event(self, event_type: str, data: Dict[str, Any]) -> None:
         """Log a structured event"""
         log_data = {
@@ -31,7 +31,7 @@ class StructuredLogger:
             **data
         }
         self.logger.info(json.dumps(log_data))
-    
+
     def search_performed(self, query: str, normalized: str, result_count: int, latency_ms: float) -> None:
         """Log search.performed event"""
         self.log_event("search.performed", {
@@ -40,7 +40,7 @@ class StructuredLogger:
             "resultCount": result_count,
             "latencyMs": latency_ms
         })
-    
+
     def post_uploaded(self, post_id: str, has_geo: bool, location_matched: Optional[str] = None) -> None:
         """Log post.upload event"""
         self.log_event("post.upload", {
@@ -48,7 +48,7 @@ class StructuredLogger:
             "hasGeo": has_geo,
             "locationMatched": location_matched
         })
-    
+
     def location_nearby_request(self, location_id: str, radius_km: float, result_count: int) -> None:
         """Log location.nearby.request event"""
         self.log_event("location.nearby.request", {
@@ -56,21 +56,21 @@ class StructuredLogger:
             "radiusKm": radius_km,
             "resultCount": result_count
         })
-    
+
     def post_liked(self, post_id: str, user_id: str) -> None:
         """Log post.liked event"""
         self.log_event("post.liked", {
             "postId": post_id,
             "userId": user_id
         })
-    
+
     def post_unliked(self, post_id: str, user_id: str) -> None:
         """Log post.unliked event"""
         self.log_event("post.unliked", {
             "postId": post_id,
             "userId": user_id
         })
-    
+
     def post_commented(self, post_id: str, user_id: str, comment_id: str) -> None:
         """Log post.commented event"""
         self.log_event("post.commented", {
@@ -78,14 +78,14 @@ class StructuredLogger:
             "userId": user_id,
             "commentId": comment_id
         })
-    
+
     def comment_updated(self, comment_id: str, user_id: str) -> None:
         """Log comment.updated event"""
         self.log_event("comment.updated", {
             "commentId": comment_id,
             "userId": user_id
         })
-    
+
     def comment_deleted(self, comment_id: str, user_id: str) -> None:
         """Log comment.deleted event"""
         self.log_event("comment.deleted", {
@@ -103,7 +103,7 @@ def log_time(event_type: str, extra_data: Optional[Dict[str, Any]] = None):
     """Context manager to time operations and log results"""
     start_time = time.time()
     extra_data = extra_data or {}
-    
+
     try:
         yield
     finally:

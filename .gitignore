@@ -18,3 +18,20 @@ uploads/videos/*.mkv
 /tmp/painaidee.db
 painaidee_colab.db
 fresh_venv/
+
+# Python cache and testing
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

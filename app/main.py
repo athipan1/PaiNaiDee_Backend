@@ -20,16 +20,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.log_event("db.initialization_failed", {"error": str(e)})
         # Continue anyway for demo purposes
-    
+
     yield
-    
+
     # Shutdown
     logger.log_event("app.shutdown", {"version": settings.version})
 
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application"""
-    
+
     app = FastAPI(
         title=settings.app_name,
         version=settings.version,
@@ -79,7 +79,7 @@ This implementation focuses on:
         lifespan=lifespan,
         debug=settings.debug
     )
-    
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -88,12 +88,12 @@ This implementation focuses on:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Include routers
     app.include_router(routes_search.router)
     app.include_router(routes_locations.router)
     app.include_router(routes_posts.router)
-    
+
     @app.get("/", tags=["health"])
     async def root():
         """Health check and API information"""
@@ -118,7 +118,7 @@ This implementation focuses on:
             "phase": "1",
             "next_phase": "Semantic search with embeddings"
         }
-    
+
     @app.get("/health", tags=["health"])
     async def health_check():
         """Simple health check endpoint"""
@@ -128,7 +128,7 @@ This implementation focuses on:
             "database": "postgresql",
             "search_engine": "pg_trgm + custom ranking"
         }
-    
+
     return app
 
 

@@ -1,6 +1,6 @@
 import pytest
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from src.models import db
 from src.models.api_analytics import APIAnalytics
 
@@ -161,8 +161,8 @@ class TestDashboardRoutes:
     
     def test_dashboard_with_date_filters(self, client, auth_headers):
         """Test dashboard endpoints with date range filters"""
-        start_date = (datetime.utcnow() - timedelta(days=7)).isoformat()
-        end_date = datetime.utcnow().isoformat()
+        start_date = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        end_date = datetime.now(timezone.utc).isoformat()
         
         response = client.get(
             f"/api/dashboard/overview?start_date={start_date}&end_date={end_date}",

@@ -32,10 +32,10 @@ class Attraction(db.Model):
             func.avg(Review.rating).label('average_rating'),
             func.count(Review.id).label('total_reviews')
         ).filter(Review.place_id == self.id).first()
-        
+
         avg_rating = float(result.average_rating) if result.average_rating else 0
         total_reviews = result.total_reviews or 0
-        
+
         return {
             "average_rating": round(avg_rating, 1),
             "total_reviews": total_reviews

@@ -114,7 +114,7 @@ def get_attractions_by_category(category_name):
     try:
         attractions = AttractionService.get_attractions_by_category(category_name)
         results = [attraction.to_category_dict() for attraction in attractions]
-        
+
         return standardized_response(
             data=results,
             message=f"Attractions in category '{category_name}' retrieved successfully.",

@@ -43,7 +43,7 @@ async def init_db():
         if "postgresql" in settings.database_uri:
             # Enable pg_trgm extension for fuzzy search
             await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
-            
+
             # Enable PostGIS if available (optional)
             try:
                 await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))

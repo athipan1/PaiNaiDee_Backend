@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from src.models import db
 from src.models.api_analytics import APIAnalytics
 from src.services.analytics_service import AnalyticsService
@@ -64,7 +64,7 @@ class TestAnalyticsService:
     def test_request_count_by_period_day(self, app):
         """Test request count grouped by day"""
         with app.app_context():
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             yesterday = now - timedelta(days=1)
             
             # Create analytics for today and yesterday

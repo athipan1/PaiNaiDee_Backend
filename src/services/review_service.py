@@ -16,7 +16,7 @@ class ReviewService:
 
         # Check if user has already reviewed this attraction
         existing_review = Review.query.filter_by(
-            user_id=user_id, 
+            user_id=user_id,
             place_id=data["place_id"]
         ).first()
         if existing_review:

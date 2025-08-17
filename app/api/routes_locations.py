@@ -19,7 +19,7 @@ async def get_location(
 ):
     """
     Get detailed information about a specific location.
-    
+
     Returns location details including:
     - Basic location information (name, province, coordinates)
     - Aliases and popularity score
@@ -39,10 +39,10 @@ async def get_nearby_locations(
 ):
     """
     Get nearby locations within specified radius.
-    
+
     Uses geographic distance calculation if coordinates are available,
     otherwise falls back to curated list based on province or name similarity.
-    
+
     **Features:**
     - Geographic distance calculation using Haversine formula
     - Fallback to province-based similarity matching
@@ -63,13 +63,13 @@ async def autocomplete_locations(
 ):
     """
     Get location autocomplete suggestions.
-    
+
     Provides fast location suggestions using:
     - Prefix matching for exact matches
     - Fuzzy matching using trigram similarity
     - Alias matching for alternative names
     - Popularity-based ranking
-    
+
     **Use cases:**
     - Search box autocomplete
     - Location picker suggestions

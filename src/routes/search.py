@@ -12,7 +12,7 @@ search_service = SearchService()
 def search_attractions():
     """
     ค้นหาสถานที่ท่องเที่ยวด้วย fuzzy search และรองรับพารามิเตอร์หลายตัว
-    
+
     Support multiple query parameters:
     - query: ข้อความค้นหา
     - language: ภาษา (th/en)
@@ -25,14 +25,14 @@ def search_attractions():
     - offset: เริ่มต้นที่ผลลัพธ์ที่
     """
     start_time = time.time()
-    
+
     try:
         # รองรับทั้ง GET และ POST
         if request.method == "POST":
             data = request.get_json() or {}
         else:
             data = request.args.to_dict()
-        
+
         # สร้าง SearchQuery จากพารามิเตอร์
         search_query = SearchQuery(
             query=data.get("query", ""),
@@ -45,10 +45,10 @@ def search_attractions():
             limit=int(data.get("limit", 20)),
             offset=int(data.get("offset", 0))
         )
-        
+
         # ทำการค้นหา
         search_results, total_count = search_service.search_attractions_with_fuzzy(search_query)
-        
+
         # แปลงผลลัพธ์เป็น dict
         results = []
         for result in search_results:
@@ -59,9 +59,9 @@ def search_attractions():
                 "confidence": result.similarity_score
             })
             results.append(attraction_dict)
-        
+
         processing_time = round((time.time() - start_time) * 1000, 2)  # milliseconds
-        
+
         response_data = {
             "results": results,
             "total_count": total_count,
@@ -81,19 +81,19 @@ def search_attractions():
             },
             "processing_time_ms": processing_time
         }
-        
+
         return standardized_response(data=response_data)
-    
+
     except ValueError as e:
         return standardized_response(
-            message=f"Invalid parameter: {str(e)}", 
-            success=False, 
+            message=f"Invalid parameter: {str(e)}",
+            success=False,
             status_code=400
         )
     except Exception as e:
         return standardized_response(
-            message=f"Search error: {str(e)}", 
-            success=False, 
+            message=f"Search error: {str(e)}",
+            success=False,
             status_code=500
         )
 
@@ -108,14 +108,14 @@ def get_search_suggestions():
         query = request.args.get("query", "", type=str)
         language = request.args.get("language", "th", type=str)
         limit = int(request.args.get("limit", 10))
-        
+
         suggestions = search_service.get_search_suggestions(query, language, limit)
-        
+
         return standardized_response(data={"suggestions": suggestions})
     except Exception as e:
         return standardized_response(
-            message=f"Search suggestions error: {str(e)}", 
-            success=False, 
+            message=f"Search suggestions error: {str(e)}",
+            success=False,
             status_code=500
         )
 
@@ -128,11 +128,11 @@ def get_trending_searches():
     try:
         language = request.args.get("language", "th", type=str)
         trending = search_service.get_trending_searches(language)
-        
+
         return standardized_response(data={"trending": trending})
     except Exception as e:
         return standardized_response(
-            message=f"Trending search error: {str(e)}", 
-            success=False, 
+            message=f"Trending search error: {str(e)}",
+            success=False,
             status_code=500
         )

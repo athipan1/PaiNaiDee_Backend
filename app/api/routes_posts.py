@@ -18,6 +18,57 @@ def get_current_user_id() -> str:
     return "user_123_demo"  # TODO: Replace with actual auth
 
 
+def _parse_tags(tags: Optional[str]) -> List[str]:
+    """Parse tags from JSON string."""
+    if not tags:
+        return []
+
+    try:
+        parsed_tags = json.loads(tags)
+        if not isinstance(parsed_tags, list):
+            raise ValueError("Tags must be a JSON array")
+        return parsed_tags
+    except (json.JSONDecodeError, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid tags format. Must be JSON array.")
+
+
+def _validate_media_file(file: UploadFile) -> str:
+    """Validate media file and return media type."""
+    if not file.content_type or not (
+        file.content_type.startswith('image/') or
+        file.content_type.startswith('video/')
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File {file.filename} must be an image or video"
+        )
+    return "image" if file.content_type.startswith('image/') else "video"
+
+
+def _process_media_files(media_files: List[UploadFile], current_user_id: str) -> List[PostMediaCreate]:
+    """Process media files and create media objects."""
+    media_list = []
+    for i, file in enumerate(media_files):
+        media_type = _validate_media_file(file)
+
+        # TODO: Upload to cloud storage (S3, GCS, etc.)
+        # For now, create dummy URLs
+        fake_url = f"https://storage.example.com/posts/{current_user_id}/{file.filename}"
+        fake_thumb_url = f"https://storage.example.com/posts/{current_user_id}/thumb_{file.filename}" if media_type == "video" else None
+
+        media_list.append(PostMediaCreate(
+            media_type=media_type,
+            url=fake_url,
+            thumb_url=fake_thumb_url,
+            ordering=i
+        ))
+
+    if not media_list:
+        raise HTTPException(status_code=400, detail="At least one media file is required")
+
+    return media_list
+
+
 @router.post("/posts", response_model=PostUploadResponse)
 async def create_post(
     caption: Optional[str] = Form(None, description="Post caption"),
@@ -31,64 +82,29 @@ async def create_post(
 ):
     """
     Create a new post with media uploads.
-    
+
     **Multipart form data with:**
     - `caption`: Optional post caption (max 2000 chars)
     - `tags`: JSON array of tags (e.g., '["beach", "sunset"]')
     - `location_id`: Optional location UUID
     - `lat`, `lng`: Optional coordinates for auto-location matching
     - `media_files`: One or more image/video files
-    
+
     **Features:**
     - Auto-location matching based on coordinates (5km radius)
     - Support for multiple media files
     - Tag processing and indexing
     - Structured logging for analytics
-    
+
     **Location Matching:**
     If coordinates are provided, the system automatically finds
     the nearest location within 5km radius and associates it with the post.
     """
     try:
-        # Parse tags from JSON string
-        parsed_tags = []
-        if tags:
-            try:
-                parsed_tags = json.loads(tags)
-                if not isinstance(parsed_tags, list):
-                    raise ValueError("Tags must be a JSON array")
-            except (json.JSONDecodeError, ValueError):
-                raise HTTPException(status_code=400, detail="Invalid tags format. Must be JSON array.")
-        
-        # Process media files (in a real implementation, you'd upload to cloud storage)
-        media_list = []
-        for i, file in enumerate(media_files):
-            # Validate file type
-            if not file.content_type or not (
-                file.content_type.startswith('image/') or 
-                file.content_type.startswith('video/')
-            ):
-                raise HTTPException(
-                    status_code=400, 
-                    detail=f"File {file.filename} must be an image or video"
-                )
-            
-            # TODO: Upload to cloud storage (S3, GCS, etc.)
-            # For now, create dummy URLs
-            media_type = "image" if file.content_type.startswith('image/') else "video"
-            fake_url = f"https://storage.example.com/posts/{current_user_id}/{file.filename}"
-            fake_thumb_url = f"https://storage.example.com/posts/{current_user_id}/thumb_{file.filename}" if media_type == "video" else None
-            
-            media_list.append(PostMediaCreate(
-                media_type=media_type,
-                url=fake_url,
-                thumb_url=fake_thumb_url,
-                ordering=i
-            ))
-        
-        if not media_list:
-            raise HTTPException(status_code=400, detail="At least one media file is required")
-        
+        # Parse tags and process media files
+        parsed_tags = _parse_tags(tags)
+        media_list = _process_media_files(media_files, current_user_id)
+
         # Create post data
         post_data = PostCreate(
             caption=caption,
@@ -98,11 +114,11 @@ async def create_post(
             lng=lng,
             media=media_list
         )
-        
+
         # Create post
         result = await post_service.create_post(post_data, current_user_id, db)
         return result
-        
+
     except HTTPException:
         raise
     except Exception as e:

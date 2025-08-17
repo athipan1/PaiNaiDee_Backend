@@ -12,7 +12,7 @@ talk_service = TalkService()
 def talk():
     """
     Conversational AI endpoint for program-to-program communication.
-    
+
     Accepts JSON: {"sender": "A", "receiver": "B", "message": "...", "session_id": "..."}
     Returns JSON: {"reply": "...", "session_id": "..."}
     """
@@ -20,13 +20,13 @@ def talk():
         # Validate request data
         schema = TalkRequestSchema()
         data = schema.load(request.json or {})
-        
+
         # Extract parameters
         sender = data['sender']
         receiver = data['receiver']
         message = data['message']
         session_id = data.get('session_id')
-        
+
         # Generate response using the talk service
         result = talk_service.generate_response(
             sender=sender,
@@ -34,7 +34,7 @@ def talk():
             message=message,
             session_id=session_id
         )
-        
+
         # Ensure the response has the expected structure
         if not isinstance(result, dict) or 'reply' not in result:
             response = jsonify({
@@ -44,12 +44,12 @@ def talk():
             })
             response.status_code = 500
             return response
-        
+
         return standardized_response(
             message="Response generated successfully",
             data=result
         )
-        
+
     except ValidationError as e:
         response = jsonify({
             "success": False,
@@ -58,7 +58,7 @@ def talk():
         })
         response.status_code = 400
         return response
-    
+
     except Exception as e:
         response = jsonify({
             "success": False,

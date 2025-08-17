@@ -63,7 +63,7 @@ def run_migrations_online() -> None:
     """
     # Override the sqlalchemy.url in alembic.ini with our dynamic config
     config.set_main_option('sqlalchemy.url', settings.database_uri)
-    
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

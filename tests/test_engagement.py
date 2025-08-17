@@ -4,7 +4,7 @@ Tests for post engagement functionality (likes and comments)
 import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.services.engagement_service import engagement_service
 from app.schemas.engagement import PostCommentCreate, PostCommentUpdate
@@ -29,8 +29,8 @@ class TestEngagementService:
         post.caption = "Test post"
         post.like_count = 0
         post.comment_count = 0
-        post.created_at = datetime.utcnow()
-        post.updated_at = datetime.utcnow()
+        post.created_at = datetime.now(timezone.utc)
+        post.updated_at = datetime.now(timezone.utc)
         return post
     
     @pytest.fixture
@@ -41,8 +41,8 @@ class TestEngagementService:
         comment.post_id = uuid.uuid4()
         comment.user_id = "test_user_123"
         comment.content = "Test comment"
-        comment.created_at = datetime.utcnow()
-        comment.updated_at = datetime.utcnow()
+        comment.created_at = datetime.now(timezone.utc)
+        comment.updated_at = datetime.now(timezone.utc)
         return comment
     
     @pytest.mark.asyncio
@@ -322,16 +322,16 @@ class TestEngagementService:
                 post_id=sample_post.id,
                 user_id="user1",
                 content="Comment 1",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc)
             ),
             PostComment(
                 id=uuid.uuid4(),
                 post_id=sample_post.id,
                 user_id="user2",
                 content="Comment 2",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc)
             )
         ]
         comments_result.scalars.return_value.all.return_value = mock_comments

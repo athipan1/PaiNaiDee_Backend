@@ -41,7 +41,7 @@ class VideoService:
             counter += 1
 
         file_path = os.path.join(VideoService.UPLOAD_FOLDER, unique_filename)
-        
+
         try:
             file.save(file_path)
             return f"/{file_path}", None

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from src.models import db
 from src.models.external_data import DataSource, ManualUpdate, ScheduledUpdate
 from src.utils.response import standardized_response
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import re
 
 external_data_bp = Blueprint('external_data', __name__)
@@ -32,25 +32,25 @@ def configure_data_source():
     """Configure a new data source or update existing one"""
     try:
         data = request.get_json()
-        
+
         if not data:
             return standardized_response(
                 message="Request body is required",
                 success=False,
                 status_code=422
             )
-            
+
         # Required fields validation
         required_fields = ['name', 'type']
         missing_fields = [field for field in required_fields if field not in data or not data[field]]
-        
+
         if missing_fields:
             return standardized_response(
                 message=f"Missing required fields: {', '.join(missing_fields)}",
                 success=False,
                 status_code=422
             )
-        
+
         # Validate type
         valid_types = ['api', 'database', 'file']
         if data['type'] not in valid_types:
@@ -59,7 +59,7 @@ def configure_data_source():
                 success=False,
                 status_code=422
             )
-        
+
         # Check if data source with same name already exists
         existing_source = DataSource.query.filter_by(name=data['name']).first()
         if existing_source and ('id' not in data or existing_source.id != data.get('id')):
@@ -68,7 +68,7 @@ def configure_data_source():
                 success=False,
                 status_code=422
             )
-        
+
         # Create or update data source
         if 'id' in data and data['id']:
             source = db.session.get(DataSource, data['id'])
@@ -80,24 +80,24 @@ def configure_data_source():
                 )
         else:
             source = DataSource()
-            
+
         source.name = data['name']
         source.type = data['type']
         source.endpoint_url = data.get('endpoint_url')
         source.configuration = data.get('configuration', {})
         source.is_active = data.get('is_active', True)
-        source.updated_at = datetime.utcnow()
-        
+        source.updated_at = datetime.now(timezone.utc)
+
         if not source.id:  # New source
             db.session.add(source)
-            
+
         db.session.commit()
-        
+
         return standardized_response(
             data=source.to_dict(),
             message="Data source configured successfully"
         )
-        
+
     except Exception as e:
         db.session.rollback()
         return standardized_response(
@@ -112,16 +112,16 @@ def trigger_manual_update():
     """Trigger a manual update for a data source"""
     try:
         data = request.get_json()
-        
+
         if not data or 'data_source_id' not in data:
             return standardized_response(
                 message="data_source_id is required",
                 success=False,
                 status_code=422
             )
-        
+
         data_source_id = data['data_source_id']
-        
+
         # Validate data source exists and is active
         data_source = db.session.get(DataSource, data_source_id)
         if not data_source:
@@ -130,36 +130,36 @@ def trigger_manual_update():
                 success=False,
                 status_code=404
             )
-            
+
         if not data_source.is_active:
             return standardized_response(
                 message="Cannot trigger update for inactive data source",
                 success=False,
                 status_code=422
             )
-        
+
         # Create manual update record
         manual_update = ManualUpdate(
             data_source_id=data_source_id,
             triggered_by=data.get('triggered_by', 'system'),
             status='pending'
         )
-        
+
         db.session.add(manual_update)
         db.session.commit()
-        
+
         # Here you would typically trigger the actual update process
         # For now, we'll just simulate immediate completion
         manual_update.status = 'completed'
-        manual_update.completed_at = datetime.utcnow()
+        manual_update.completed_at = datetime.now(timezone.utc)
         manual_update.records_processed = data.get('expected_records', 0)
         db.session.commit()
-        
+
         return standardized_response(
             data=manual_update.to_dict(),
             message="Manual update triggered successfully"
         )
-        
+
     except Exception as e:
         db.session.rollback()
         return standardized_response(
@@ -174,25 +174,25 @@ def create_scheduled_update():
     """Create a scheduled update for a data source"""
     try:
         data = request.get_json()
-        
+
         if not data:
             return standardized_response(
                 message="Request body is required",
                 success=False,
                 status_code=422
             )
-        
+
         # Required fields validation
         required_fields = ['data_source_id', 'frequency']
         missing_fields = [field for field in required_fields if field not in data or data[field] is None]
-        
+
         if missing_fields:
             return standardized_response(
                 message=f"Missing required fields: {', '.join(missing_fields)}",
                 success=False,
                 status_code=422
             )
-        
+
         # Validate frequency
         frequency = data['frequency']
         if frequency not in VALID_FREQUENCIES:
@@ -201,9 +201,9 @@ def create_scheduled_update():
                 success=False,
                 status_code=422
             )
-        
+
         data_source_id = data['data_source_id']
-        
+
         # Validate data source exists
         data_source = db.session.get(DataSource, data_source_id)
         if not data_source:
@@ -212,22 +212,22 @@ def create_scheduled_update():
                 success=False,
                 status_code=404
             )
-        
+
         # Check if scheduled update already exists for this data source
         existing_schedule = ScheduledUpdate.query.filter_by(
             data_source_id=data_source_id,
             is_active=True
         ).first()
-        
+
         if existing_schedule:
             return standardized_response(
                 message="Active scheduled update already exists for this data source",
                 success=False,
                 status_code=422
             )
-        
+
         # Calculate next run time based on frequency
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if frequency == 'hourly':
             next_run = now + timedelta(hours=1)
         elif frequency == 'daily':
@@ -236,7 +236,7 @@ def create_scheduled_update():
             next_run = now + timedelta(weeks=1)
         elif frequency == 'monthly':
             next_run = now + timedelta(days=30)
-        
+
         # Create scheduled update
         scheduled_update = ScheduledUpdate(
             data_source_id=data_source_id,
@@ -244,15 +244,15 @@ def create_scheduled_update():
             is_active=data.get('is_active', True),
             next_run=next_run
         )
-        
+
         db.session.add(scheduled_update)
         db.session.commit()
-        
+
         return standardized_response(
             data=scheduled_update.to_dict(),
             message="Scheduled update created successfully"
         )
-        
+
     except Exception as e:
         db.session.rollback()
         return standardized_response(
@@ -273,14 +273,14 @@ def delete_scheduled_update(schedule_id):
                 success=False,
                 status_code=404
             )
-        
+
         db.session.delete(scheduled_update)
         db.session.commit()
-        
+
         return standardized_response(
             message="Scheduled update deleted successfully"
         )
-        
+
     except Exception as e:
         db.session.rollback()
         return standardized_response(

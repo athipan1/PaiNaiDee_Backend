@@ -18,13 +18,13 @@ async def search_posts(
 ):
     """
     Search for travel posts using fuzzy matching, keyword expansion, and ranking.
-    
+
     This endpoint implements Phase 1 contextual search with:
     - Fuzzy matching on location names and aliases using trigram similarity
     - Keyword expansion via static mapping (province → landmarks)
     - Post retrieval using expansion terms (caption ILIKE, tags overlap, location match)
     - Ranking blend (popularity + recency) with configurable weights
-    
+
     **Example queries:**
     - `เชียงใหม่` - Searches for Chiang Mai and related landmarks
     - `ทะเล` - Searches for sea/beach related content

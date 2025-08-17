@@ -18,7 +18,7 @@ def upload_video():
 
     # Get caption from form data
     caption = request.form.get("caption", "")
-    
+
     # Validate caption using schema
     try:
         validated_data = VideoUploadSchema().load({"caption": caption})
@@ -57,11 +57,11 @@ def upload_video():
 def get_videos():
     """Get all videos for explore feed"""
     videos = VideoService.get_all_videos()
-    
+
     # Serialize videos using schema
     schema = VideoListSchema(many=True)
     videos_data = schema.dump([video.to_dict() for video in videos])
-    
+
     return standardized_response(
         data=videos_data,
         message="Videos retrieved successfully"

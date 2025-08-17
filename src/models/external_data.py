@@ -4,7 +4,7 @@ from src.models import db
 
 class DataSource(db.Model):
     __tablename__ = 'data_sources'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     type = db.Column(db.String(50), nullable=False)  # e.g., 'api', 'database', 'file'
@@ -13,11 +13,11 @@ class DataSource(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     manual_updates = db.relationship('ManualUpdate', backref='data_source', lazy=True, cascade='all, delete-orphan')
     scheduled_updates = db.relationship('ScheduledUpdate', backref='data_source', lazy=True, cascade='all, delete-orphan')
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -33,7 +33,7 @@ class DataSource(db.Model):
 
 class ManualUpdate(db.Model):
     __tablename__ = 'manual_updates'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     data_source_id = db.Column(db.Integer, db.ForeignKey('data_sources.id'), nullable=False)
     status = db.Column(db.String(50), default='pending')  # pending, running, completed, failed
@@ -42,7 +42,7 @@ class ManualUpdate(db.Model):
     completed_at = db.Column(db.DateTime)
     error_message = db.Column(db.Text)
     records_processed = db.Column(db.Integer, default=0)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -58,7 +58,7 @@ class ManualUpdate(db.Model):
 
 class ScheduledUpdate(db.Model):
     __tablename__ = 'scheduled_updates'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     data_source_id = db.Column(db.Integer, db.ForeignKey('data_sources.id'), nullable=False)
     frequency = db.Column(db.String(50), nullable=False)  # hourly, daily, weekly, monthly
@@ -66,7 +66,7 @@ class ScheduledUpdate(db.Model):
     last_run = db.Column(db.DateTime)
     next_run = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'id': self.id,

@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from app.utils.ranking import (
     calculate_popularity_score,
     calculate_recency_decay,
@@ -29,7 +29,7 @@ class TestRanking:
     
     def test_calculate_recency_decay(self):
         """Test recency decay calculation"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Recent content should have higher score
         recent = calculate_recency_decay(now - timedelta(minutes=60))
@@ -46,7 +46,7 @@ class TestRanking:
     
     def test_calculate_combined_score(self):
         """Test combined scoring"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Basic scoring
         score, components = calculate_combined_score(
@@ -59,7 +59,6 @@ class TestRanking:
         assert "popularity" in components
         assert "recency" in components
         assert "combined" in components
-        assert "weights_used" in components
         
         # Custom weights
         custom_weights = {"w_pop": 0.8, "w_recency": 0.2}

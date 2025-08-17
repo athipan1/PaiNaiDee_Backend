@@ -8,7 +8,7 @@ class AuthService:
     def register_user(username, password, email=None):
         if User.query.filter_by(username=username).first():
             return None, "User already exists."
-        
+
         if email and User.query.filter_by(email=email).first():
             return None, "Email already exists."
 

@@ -4,9 +4,9 @@ from src.models import db
 
 class APIAnalytics(db.Model):
     """Model to track API request analytics for dashboard monitoring"""
-    
+
     __tablename__ = 'api_analytics'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     endpoint = db.Column(db.String(255), nullable=False, index=True)
     method = db.Column(db.String(10), nullable=False)
@@ -18,13 +18,13 @@ class APIAnalytics(db.Model):
     request_size = db.Column(db.Integer, nullable=True)  # in bytes
     response_size = db.Column(db.Integer, nullable=True)  # in bytes
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    
+
     # Relationships
     user = db.relationship('User', backref='api_requests', lazy=True)
-    
+
     def __repr__(self):
         return f'<APIAnalytics {self.method} {self.endpoint} - {self.status_code}>'
-    
+
     def to_dict(self):
         return {
             'id': self.id,
