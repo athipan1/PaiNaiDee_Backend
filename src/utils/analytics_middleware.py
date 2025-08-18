@@ -42,7 +42,7 @@ class APIAnalyticsMiddleware:
                 current_user = get_current_user()
                 if current_user:
                     user_id = current_user.id
-            except:
+            except Exception:
                 pass  # No authenticated user
             
             # Get response size
@@ -76,14 +76,14 @@ class APIAnalyticsMiddleware:
             print(f"Analytics middleware error: {e}", file=sys.stderr)
             try:
                 db.session.rollback()
-            except:
+            except Exception:
                 pass
             
             # Try to create tables if they don't exist
             try:
                 from src.models.api_analytics import APIAnalytics
                 db.create_all()
-            except:
+            except Exception:
                 pass
         
         return response

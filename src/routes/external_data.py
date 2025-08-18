@@ -19,7 +19,7 @@ def get_data_sources():
             data=[source.to_dict() for source in sources],
             message="Data sources retrieved successfully"
         )
-    except Exception as e:
+    except Exception:
         return standardized_response(
             message="Failed to retrieve data sources",
             success=False,
@@ -98,7 +98,7 @@ def configure_data_source():
             message="Data source configured successfully"
         )
         
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return standardized_response(
             message="Failed to configure data source",
@@ -160,7 +160,7 @@ def trigger_manual_update():
             message="Manual update triggered successfully"
         )
         
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return standardized_response(
             message="Failed to trigger manual update",
@@ -253,7 +253,7 @@ def create_scheduled_update():
             message="Scheduled update created successfully"
         )
         
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return standardized_response(
             message="Failed to create scheduled update",
@@ -281,7 +281,7 @@ def delete_scheduled_update(schedule_id):
             message="Scheduled update deleted successfully"
         )
         
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return standardized_response(
             message="Failed to delete scheduled update",

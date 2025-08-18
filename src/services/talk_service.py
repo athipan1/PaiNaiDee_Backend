@@ -75,13 +75,12 @@ class TalkService:
     
     def _generate_fallback_response(self, sender: str, receiver: str, message: str) -> str:
         """Generate a fallback response when LLM is not available."""
-        receiver_role = self.DEFAULT_ROLES.get(receiver, self.DEFAULT_ROLES["B"])
         
         # Simple rule-based responses for demonstration
         message_lower = message.lower()
         
         if any(word in message_lower for word in ['hello', 'hi', 'สวัสดี']):
-            return f"สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณ How can I help you with information about Thailand?"
+            return "สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณ How can I help you with information about Thailand?"
         
         elif any(word in message_lower for word in ['bangkok', 'กรุงเทพ']):
             return "Bangkok is an amazing city! There are so many attractions like the Grand Palace, Wat Pho, and Chatuchak Market. What specifically would you like to know about Bangkok?"
@@ -93,7 +92,7 @@ class TalkService:
             return "Thai cuisine is incredible! You must try Pad Thai, Tom Yum Goong, Green Curry, and Mango Sticky Rice. Are you looking for restaurant recommendations or curious about specific dishes?"
         
         else:
-            return f"Thank you for your message! As a Thai tourism assistant, I'd be happy to help you learn more about Thailand's attractions, culture, and travel tips. Could you tell me more about what interests you?"
+            return "Thank you for your message! As a Thai tourism assistant, I'd be happy to help you learn more about Thailand's attractions, culture, and travel tips. Could you tell me more about what interests you?"
     
     def generate_response(self, sender: str, receiver: str, message: str, session_id: Optional[str] = None) -> Dict:
         """Generate a conversational response."""
