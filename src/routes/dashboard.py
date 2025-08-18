@@ -19,7 +19,6 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 def parse_query_params():
     """Parse and validate common query parameters"""
-    query_schema = DashboardQuerySchema()
     try:
         query_params = {}
         

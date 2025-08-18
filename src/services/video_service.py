@@ -87,7 +87,7 @@ class VideoService:
             try:
                 if video_url and os.path.exists(video_url[1:]):  # Remove leading slash
                     os.remove(video_url[1:])
-            except:
+            except Exception:
                 pass
             return None, f"Error saving video post: {str(e)}"
 
