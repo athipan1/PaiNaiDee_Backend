@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 import json
 
 from app.db.session import get_async_db
 from app.services.post_service import post_service
-from app.schemas.posts import PostCreate, PostUploadResponse, PostMediaCreate
+from app.schemas.posts import PostCreate, PostUploadResponse, PostMediaCreate, PostListResponse, PostResponse
 
 router = APIRouter(prefix="/api", tags=["posts"])
 
@@ -107,3 +107,54 @@ async def create_post(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Post creation failed: {str(e)}")
+
+
+@router.get("/posts", response_model=PostListResponse)
+async def get_posts(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=50, description="Number of posts per page"),
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    Get all posts with pagination, newest first.
+    
+    **Query Parameters:**
+    - `page`: Page number (starting from 1)
+    - `page_size`: Number of posts per page (1-50)
+    
+    **Features:**
+    - Posts are returned in descending order by creation date (newest first)
+    - Includes pagination metadata (total count, total pages, etc.)
+    - Each post includes like count, comment count, and media information
+    """
+    try:
+        result = await post_service.get_posts(db, page, page_size)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve posts: {str(e)}")
+
+
+@router.get("/posts/{post_id}", response_model=PostResponse)
+async def get_post_by_id(
+    post_id: str,
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    Get a specific post by ID.
+    
+    **Path Parameters:**
+    - `post_id`: UUID of the post to retrieve
+    
+    **Features:**
+    - Returns complete post information including engagement metrics
+    - Includes associated media and location data
+    """
+    try:
+        post = await post_service.get_post_by_id(post_id, db)
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+        return post
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve post: {str(e)}")

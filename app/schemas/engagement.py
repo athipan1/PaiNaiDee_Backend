@@ -27,6 +27,11 @@ class PostCommentUpdate(BaseModel):
     content: str = Field(..., min_length=1, max_length=500, description="Updated comment content")
 
 
+class PostCommentCreateRequest(BaseModel):
+    """Schema for comment creation request body"""
+    content: str = Field(..., min_length=1, max_length=500, description="Comment content")
+
+
 class PostCommentResponse(BaseModel):
     """Schema for post comment response"""
     id: str = Field(..., description="Comment ID")
