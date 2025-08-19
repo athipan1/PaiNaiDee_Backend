@@ -5,7 +5,7 @@ import uuid
 
 from app.db.models import Post, PostMedia, Location
 from app.utils.ranking import haversine_distance
-from app.schemas.posts import PostCreate, PostResponse, PostUploadResponse, PostMediaCreate
+from app.schemas.posts import PostCreate, PostResponse, PostUploadResponse, PostMediaCreate, PostListResponse
 from app.core.logging import logger
 
 
@@ -213,6 +213,71 @@ class PostService:
             comment_count=post.comment_count,
             created_at=post.created_at,
             updated_at=post.updated_at
+        )
+
+
+    async def get_posts(
+        self,
+        db: AsyncSession,
+        page: int = 1,
+        page_size: int = 10
+    ) -> PostListResponse:
+        """
+        Get paginated list of posts, newest first
+        
+        Args:
+            page: Page number (1-based)
+            page_size: Number of posts per page
+            db: Database session
+            
+        Returns:
+            PostListResponse with posts and pagination info
+        """
+        # Calculate offset
+        offset = (page - 1) * page_size
+        
+        # Get total count
+        count_query = select(func.count(Post.id))
+        count_result = await db.execute(count_query)
+        total_count = count_result.scalar()
+        
+        # Get posts with pagination, newest first
+        posts_query = (
+            select(Post)
+            .order_by(Post.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        
+        posts_result = await db.execute(posts_query)
+        posts = posts_result.scalars().all()
+        
+        # Convert to response format
+        post_responses = []
+        for post in posts:
+            post_responses.append(PostResponse(
+                id=str(post.id),
+                user_id=post.user_id,
+                caption=post.caption,
+                tags=post.tags or [],
+                location_id=str(post.location_id) if post.location_id else None,
+                lat=post.lat,
+                lng=post.lng,
+                like_count=post.like_count,
+                comment_count=post.comment_count,
+                created_at=post.created_at,
+                updated_at=post.updated_at
+            ))
+        
+        # Calculate total pages
+        total_pages = (total_count + page_size - 1) // page_size
+        
+        return PostListResponse(
+            posts=post_responses,
+            total_count=total_count,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages
         )
 
 

@@ -42,3 +42,12 @@ class PostUploadResponse(BaseModel):
     post: PostResponse = Field(..., description="Created post")
     location_matched: Optional[str] = Field(None, description="Auto-matched location name")
     message: str = Field(..., description="Response message")
+
+
+class PostListResponse(BaseModel):
+    """Schema for listing posts response"""
+    posts: List[PostResponse] = Field(..., description="List of posts")
+    total_count: int = Field(..., description="Total number of posts")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of posts per page")
+    total_pages: int = Field(..., description="Total number of pages")
