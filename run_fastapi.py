@@ -36,15 +36,18 @@ if __name__ == "__main__":
     
     print("🇹🇭 Starting PaiNaiDee Backend API - Phase 1")
     print("📍 Contextual Travel Content Search API")
-    print("🔗 Documentation: http://localhost:8000/docs")
-    print("🔗 Health Check: http://localhost:8000/health")
-    print("🔍 Search Example: http://localhost:8000/api/search?q=เชียงใหม่")
+    port = int(os.getenv("PORT", 8000))
+    reload = os.getenv("DEBUG", "false").lower() == "true"
+
+    print(f"🔗 Documentation: http://localhost:{port}/docs")
+    print(f"🔗 Health Check: http://localhost:{port}/health")
+    print(f"🔍 Search Example: http://localhost:{port}/api/search?q=เชียงใหม่")
     print("")
     
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=reload,
         log_level="info"
     )

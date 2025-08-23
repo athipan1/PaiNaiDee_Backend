@@ -11,7 +11,7 @@ Deploy PaiNaiDee Backend to your favorite platform with a single click:
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/G2tGbV?referralCode=alphaDev)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/athipan1/PaiNaiDee_Backend)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/athipan1/PaiNaiDee_Backend)
-[![Deploy on HF Spaces](https://huggingface.co/spaces/button)](https://huggingface.co/spaces/new?repo=athipan1/PaiNaiDee_Backend)
+[![Deploy on HF Spaces](https://huggingface.co/widgets/Deploy/Space.svg)](https://huggingface.co/spaces/new?template=athipan1/PaiNaiDee_Backend)
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/athipan1/PaiNaiDee_Backend)
 
 ### 🔧 Development Environments
