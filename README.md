@@ -1,1 +1,1 @@
-[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces.svg)](https://huggingface.co/new-space?template=athipan1/PaiNaiDee_Backend)
+[![Deploy to Hugging Face Spaces](https://huggingface.co/datasets/huggingface/badges/raw/main/deploy-to-spaces.svg)](https://huggingface.co/new-space)
