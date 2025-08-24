@@ -74,9 +74,15 @@ def create_spaces_app():
     config_name = os.getenv('FLASK_ENV', 'huggingface')
     app = create_app(config_name)
 
-    # Create all database tables
-    with app.app_context():
-        db.create_all()
+    # Create all database tables within a try-except block for robustness
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception as e:
+        # Log the error to the console for easier debugging in Spaces
+        print(f"An error occurred during database initialization: {e}")
+        # Optionally, you could re-raise or handle it differently
+        raise
 
     # Override the home route for Spaces to provide a clear entry point message
     @app.route('/')

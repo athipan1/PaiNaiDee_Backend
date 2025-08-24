@@ -1,5 +1,6 @@
 from datetime import datetime
 from src.models import db
+from .json_encoded_dict import JSONEncodedDict
 
 
 class DataSource(db.Model):
@@ -9,7 +10,7 @@ class DataSource(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     type = db.Column(db.String(50), nullable=False)  # e.g., 'api', 'database', 'file'
     endpoint_url = db.Column(db.String(255))
-    configuration = db.Column(db.JSON)  # Store configuration as JSON
+    configuration = db.Column(JSONEncodedDict)  # Store configuration as JSON
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
