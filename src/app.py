@@ -29,7 +29,7 @@ def create_app(config_name):
         )
 
     db.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": "https://naidee-ui-spark.vercel.app"}})
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader

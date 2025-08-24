@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token
 from src.models import db, User
 
 
@@ -23,7 +23,13 @@ class AuthService:
         user = User.query.filter_by(username=username).first()
 
         if not user or not check_password_hash(user.password, password):
-            return None
+            return None, None
 
         access_token = create_access_token(identity=str(user.id))
-        return access_token
+        refresh_token = create_refresh_token(identity=str(user.id))
+        return access_token, refresh_token
+
+    @staticmethod
+    def refresh_token(identity):
+        new_access_token = create_access_token(identity=identity)
+        return new_access_token

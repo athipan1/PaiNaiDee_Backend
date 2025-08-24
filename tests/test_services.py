@@ -31,8 +31,9 @@ def test_login_user_success(app, test_user):
 
 def test_login_user_invalid_credentials(app):
     with app.app_context():
-        access_token = AuthService.login_user("testuser", "wrongpassword")
+        access_token, refresh_token = AuthService.login_user("testuser", "wrongpassword")
         assert access_token is None
+        assert refresh_token is None
 
 
 def test_add_review_success(app, test_user):

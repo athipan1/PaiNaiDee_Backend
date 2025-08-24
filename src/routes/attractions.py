@@ -121,3 +121,22 @@ def get_attractions_by_category(category_name):
         )
     except Exception as e:
         abort(500, description=f"Failed to retrieve attractions by category. Error: {e}")
+
+
+@attractions_bp.route("/accommodations/nearby/<int:attraction_id>", methods=["GET"])
+def get_nearby_accommodations(attraction_id):
+    """Get nearby accommodations for a given attraction"""
+    radius = request.args.get("radius", 10, type=int)
+    try:
+        nearby_accommodations = AttractionService.get_nearby_attractions(
+            attraction_id, radius_km=radius
+        )
+        results = [
+            accommodation.to_dict() for accommodation in nearby_accommodations
+        ]
+        return standardized_response(
+            data=results,
+            message="Nearby accommodations retrieved successfully.",
+        )
+    except Exception as e:
+        abort(500, description=f"Failed to retrieve nearby accommodations. Error: {e}")

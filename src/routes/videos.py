@@ -53,8 +53,8 @@ def upload_video():
     )
 
 
-@videos_bp.route("/videos", methods=["GET"])
-def get_videos():
+@videos_bp.route("/explore/videos", methods=["GET"])
+def get_explore_videos():
     """Get all videos for explore feed"""
     videos = VideoService.get_all_videos()
     

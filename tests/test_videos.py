@@ -162,7 +162,7 @@ class TestVideoRoutes:
 
     def test_get_videos_empty(self, client):
         """Test getting videos when no videos exist."""
-        response = client.get("/api/videos")
+        response = client.get("/api/explore/videos")
         assert response.status_code == 200
         data = response.get_json()
         assert data["success"] is True
@@ -194,7 +194,7 @@ class TestVideoRoutes:
             db.session.add(video2)
             db.session.commit()
 
-        response = client.get("/api/videos")
+        response = client.get("/api/explore/videos")
         assert response.status_code == 200
         data = response.get_json()
         assert data["success"] is True

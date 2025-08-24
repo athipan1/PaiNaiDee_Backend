@@ -1,4 +1,5 @@
 from flask import Blueprint, request, abort
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from src.services.auth_service import AuthService
 from src.utils.response import standardized_response
 from src.schemas.auth import RegisterSchema, LoginSchema
@@ -38,11 +39,23 @@ def login():
     username = validated_data["username"]
     password = validated_data["password"]
 
-    access_token = AuthService.login_user(username, password)
+    access_token, refresh_token = AuthService.login_user(username, password)
 
     if not access_token:
         abort(401, description="Invalid credentials.")
 
     return standardized_response(
-        data={"access_token": access_token}, message="Login successful."
+        data={"access_token": access_token, "refresh_token": refresh_token},
+        message="Login successful.",
+    )
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    current_user_identity = get_jwt_identity()
+    new_access_token = AuthService.refresh_token(identity=current_user_identity)
+    return standardized_response(
+        data={"access_token": new_access_token},
+        message="Access token has been refreshed.",
     )

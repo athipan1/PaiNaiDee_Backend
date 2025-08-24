@@ -1,6 +1,7 @@
 from src.models import db, Attraction
 from werkzeug.utils import secure_filename
 import os
+import math
 
 
 class AttractionService:
@@ -89,3 +90,37 @@ class AttractionService:
         )
         attractions = query.order_by(Attraction.name).all()
         return attractions
+
+    @staticmethod
+    def get_nearby_attractions(attraction_id, radius_km=10):
+        """Find nearby attractions using the Haversine formula."""
+        base_attraction = AttractionService.get_attraction_by_id(attraction_id)
+        if not base_attraction.latitude or not base_attraction.longitude:
+            return []
+
+        R = 6371  # Earth radius in kilometers
+        base_lat = math.radians(base_attraction.latitude)
+        base_lon = math.radians(base_attraction.longitude)
+
+        nearby_attractions = []
+        all_attractions = Attraction.query.filter(Attraction.id != attraction_id).all()
+
+        for attraction in all_attractions:
+            if attraction.latitude and attraction.longitude:
+                lat = math.radians(attraction.latitude)
+                lon = math.radians(attraction.longitude)
+
+                dlon = lon - base_lon
+                dlat = lat - base_lat
+
+                a = (
+                    math.sin(dlat / 2) ** 2
+                    + math.cos(base_lat) * math.cos(lat) * math.sin(dlon / 2) ** 2
+                )
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+                distance = R * c
+
+                if distance <= radius_km:
+                    nearby_attractions.append(attraction)
+
+        return nearby_attractions
