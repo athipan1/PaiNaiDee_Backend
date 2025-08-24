@@ -29,16 +29,7 @@ def create_app(config_name):
         )
 
     db.init_app(app)
-    CORS(
-        app,
-        origins=[
-            "http://localhost:3000",
-            "https://painaidee.com",
-            "https://frontend-painaidee.web.app",
-        ],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"],
-    )
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
