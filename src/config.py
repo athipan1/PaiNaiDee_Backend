@@ -42,10 +42,17 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or DevelopmentConfig().SQLALCHEMY_DATABASE_URI
 
 
+class HuggingFaceConfig(Config):
+    # Explicitly use SQLite for Hugging Face Spaces
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///painaidee.db')
+    TESTING = False # Ensure it runs in a non-testing mode
+
+
 config = {
     "development": DevelopmentConfig,
     "docker": DockerConfig,
     "testing": TestingConfig,
     "production": ProductionConfig,
+    "huggingface": HuggingFaceConfig,
     "default": DevelopmentConfig,
 }
