@@ -120,6 +120,16 @@ def get_search_suggestions():
         )
 
 
+@search_bp.route("/search/filters", methods=["GET"])
+def get_search_filters():
+    """Return available filters for attractions."""
+    dummy_filters = {
+        "province": ["Bangkok", "Chiang Mai", "Phuket"],
+        "category": ["Temple", "Beach", "Museum"],
+    }
+    return standardized_response(data=dummy_filters)
+
+
 @search_bp.route("/search/trending", methods=["GET"])
 def get_trending_searches():
     """
