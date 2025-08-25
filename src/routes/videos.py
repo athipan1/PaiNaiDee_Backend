@@ -66,3 +66,33 @@ def get_explore_videos():
         data=videos_data,
         message="Videos retrieved successfully"
     )
+
+
+@videos_bp.route("/videos/<videoId>/like", methods=["POST"])
+@jwt_required()
+def like_video(videoId):
+    """Toggle like/unlike on a video."""
+    # Dummy response for now
+    return standardized_response(data={"liked": True, "likes_count": 1})
+
+
+@videos_bp.route("/videos/<videoId>/comments", methods=["GET"])
+def get_video_comments(videoId):
+    """Fetch comments for a specific video."""
+    # Dummy response for now
+    comments = [
+        {"id": 1, "user": "user1", "comment": "Great video!"},
+        {"id": 2, "user": "user2", "comment": "Awesome content!"},
+    ]
+    return standardized_response(data=comments)
+
+
+@videos_bp.route("/videos/<videoId>/comments", methods=["POST"])
+@jwt_required()
+def add_video_comment(videoId):
+    """Add a new comment to a video."""
+    # Dummy response for now
+    data = request.get_json()
+    comment_text = data.get("comment", "")
+    new_comment = {"id": 3, "user": "current_user", "comment": comment_text}
+    return standardized_response(data=new_comment, status_code=201)

@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.config import config
@@ -54,6 +54,10 @@ def create_app(config_name):
     @app.route("/")
     def home():
         return standardized_response(message="Welcome to Pai Nai Dii Backend!")
+
+    @app.route("/health", methods=["GET"])
+    def health_check():
+        return jsonify({"status": "ok"})
 
     register_error_handlers(app)
 

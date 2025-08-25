@@ -8,6 +8,17 @@ talk_bp = Blueprint("talk", __name__)
 talk_service = TalkService()
 
 
+@talk_bp.route("/predict", methods=["POST"])
+def predict():
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"error": "Message is required"}), 400
+
+    message = data["message"]
+    # Dummy response for now
+    return jsonify({"reply": f"Received your message: {message}"})
+
+
 @talk_bp.route("/talk", methods=["POST"])
 def talk():
     """
