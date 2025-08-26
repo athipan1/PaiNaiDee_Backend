@@ -43,8 +43,8 @@ class ProductionConfig(Config):
 
 
 class HuggingFaceConfig(Config):
-    # Explicitly use SQLite for Hugging Face Spaces
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///painaidee.db')
+    # Use DATABASE_URL for Hugging Face Spaces, with a local SQLite fallback for development
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///painaidee_dev.db')
     TESTING = False # Ensure it runs in a non-testing mode
 
 
