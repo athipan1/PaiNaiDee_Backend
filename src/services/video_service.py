@@ -1,6 +1,6 @@
 import os
 from werkzeug.utils import secure_filename
-from src.models import db, VideoPost, User
+from src.models import db, VideoPost, User, VideoLike, VideoComment
 
 
 class VideoService:
@@ -100,3 +100,57 @@ class VideoService:
             .order_by(VideoPost.created_at.desc())
             .all()
         )
+
+    @staticmethod
+    def toggle_like(user_id, video_id):
+        """Toggle a like on a video post for a user."""
+        video = VideoPost.query.get(video_id)
+        if not video:
+            return None, "Video not found"
+
+        like = VideoLike.query.filter_by(user_id=user_id, video_post_id=video_id).first()
+
+        try:
+            if like:
+                # User has already liked the video, so unlike it
+                db.session.delete(like)
+                db.session.commit()
+                return {"liked": False, "likes_count": video.likes.count()}, "Video unliked successfully"
+            else:
+                # User has not liked the video, so like it
+                new_like = VideoLike(user_id=user_id, video_post_id=video_id)
+                db.session.add(new_like)
+                db.session.commit()
+                return {"liked": True, "likes_count": video.likes.count()}, "Video liked successfully"
+        except Exception as e:
+            db.session.rollback()
+            return None, f"Error toggling like: {str(e)}"
+
+    @staticmethod
+    def add_comment(user_id, video_id, text):
+        """Add a comment to a video post."""
+        video = VideoPost.query.get(video_id)
+        if not video:
+            return None, "Video not found"
+
+        if not text or not text.strip():
+            return None, "Comment text cannot be empty"
+
+        try:
+            new_comment = VideoComment(user_id=user_id, video_post_id=video_id, text=text)
+            db.session.add(new_comment)
+            db.session.commit()
+            return new_comment, "Comment added successfully"
+        except Exception as e:
+            db.session.rollback()
+            return None, f"Error adding comment: {str(e)}"
+
+    @staticmethod
+    def get_comments(video_id):
+        """Get all comments for a video post."""
+        video = VideoPost.query.get(video_id)
+        if not video:
+            return [], "Video not found"
+
+        comments = video.comments.order_by(VideoComment.created_at.asc()).all()
+        return comments, "Comments retrieved successfully"

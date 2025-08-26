@@ -18,3 +18,4 @@ uploads/videos/*.mkv
 /tmp/painaidee.db
 painaidee_colab.db
 fresh_venv/
+agent_venv/

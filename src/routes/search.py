@@ -123,11 +123,15 @@ def get_search_suggestions():
 @search_bp.route("/search/filters", methods=["GET"])
 def get_search_filters():
     """Return available filters for attractions."""
-    dummy_filters = {
-        "province": ["Bangkok", "Chiang Mai", "Phuket"],
-        "category": ["Temple", "Beach", "Museum"],
-    }
-    return standardized_response(data=dummy_filters)
+    try:
+        filters = search_service.get_available_filters()
+        return standardized_response(data=filters)
+    except Exception as e:
+        return standardized_response(
+            message=f"Error retrieving filters: {str(e)}",
+            success=False,
+            status_code=500
+        )
 
 
 @search_bp.route("/search/trending", methods=["GET"])
