@@ -398,3 +398,26 @@ class SearchService:
             "en": ["beach", "temple", "mountain", "waterfall", "market", "island", "coast"],
         }
         return trending.get(language, trending["th"])
+
+    def get_available_filters(self) -> Dict[str, List[str]]:
+        """Get available filters for provinces and categories."""
+        try:
+            # Query for distinct, non-null provinces
+            provinces_query = db.session.query(Attraction.province).filter(Attraction.province.isnot(None)).distinct().order_by(Attraction.province)
+            provinces = [p[0] for p in provinces_query.all()]
+
+            # Query for distinct, non-null categories
+            categories_query = db.session.query(Attraction.category).filter(Attraction.category.isnot(None)).distinct().order_by(Attraction.category)
+            categories = [c[0] for c in categories_query.all()]
+
+            return {
+                "provinces": provinces,
+                "categories": categories
+            }
+        except Exception as e:
+            # In case of an error, return empty filters
+            print(f"Error getting filters: {e}")
+            return {
+                "provinces": [],
+                "categories": []
+            }
