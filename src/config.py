@@ -43,9 +43,15 @@ class ProductionConfig(Config):
 
 
 class HuggingFaceConfig(Config):
-    # Use DATABASE_URL for Hugging Face Spaces, with a local SQLite fallback for development
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///painaidee_dev.db')
-    TESTING = False # Ensure it runs in a non-testing mode
+    # For Hugging Face Spaces, DATABASE_URL must be set as a secret.
+    # It should be a PostgreSQL connection string, e.g., for Supabase:
+    # postgresql://postgres:[YOUR-PASSWORD]@[YOUR-HOST]:5432/postgres
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        print("WARNING: DATABASE_URL not set. Falling back to SQLite. This will not work in a deployed Space.")
+        db_url = 'sqlite:///painaidee_dev.db'
+    SQLALCHEMY_DATABASE_URI = db_url
+    TESTING = False
 
 
 config = {

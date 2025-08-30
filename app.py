@@ -23,14 +23,14 @@ def create_spaces_app():
     config_name = os.getenv('FLASK_ENV', 'huggingface')
     app = create_app(config_name)
 
-    # Create all database tables. This is crucial for the first run with a new database.
+    # Initialize the database by calling the 'init-db' command
     try:
+        print("Attempting to initialize the database...")
         with app.app_context():
-            db.create_all()
-        print("Database tables checked/created successfully.")
+            app.cli.main(args=['init-db'])
+        print("Database initialization command executed.")
     except Exception as e:
-        # Log the error to the console for easier debugging in Spaces
-        print(f"An error occurred during database initialization: {e}")
+        print(f"An error occurred during database initialization via CLI: {e}")
         # Depending on the error, you might want to raise it to stop the app
         raise
 

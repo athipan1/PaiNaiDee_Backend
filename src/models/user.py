@@ -13,6 +13,9 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Relationship to Project
+    projects = db.relationship('Project', back_populates='user', lazy='dynamic')
+
     def to_dict(self):
         return {
             "id": self.id,

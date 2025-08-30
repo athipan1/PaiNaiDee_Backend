@@ -29,7 +29,7 @@ def create_app(config_name):
         )
 
     db.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": "https://naidee-ui-spark.vercel.app"}})
+    CORS(app, resources={r"/api/*": {"origins": "https://pai-naidee-ui-spark.vercel.app"}})
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
@@ -60,6 +60,14 @@ def create_app(config_name):
         return jsonify({"status": "ok"})
 
     register_error_handlers(app)
+
+    @app.cli.command("init-db")
+    def init_db_command():
+        """Creates the database tables."""
+        # Import all models here to ensure they are registered with SQLAlchemy
+        from src import models
+        db.create_all()
+        print("Initialized the database.")
 
     return app
 
