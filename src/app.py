@@ -24,12 +24,22 @@ def create_app(config_name):
     if config_name == "testing":
         app.config["JWT_SECRET_KEY"] = "test-secret"
     else:
-        app.config["JWT_SECRET_KEY"] = (
-            "super-secret"  # Change this in your production environment!
+        # For production, JWT_SECRET_KEY must be set as an environment variable.
+        app.config["JWT_SECRET_KEY"] = os.environ.get(
+            "JWT_SECRET_KEY", "a-secure-default-secret-for-development"
         )
 
     db.init_app(app)
-    CORS(app, resources={r"/api/*": {"origins": "https://pai-naidee-ui-spark.vercel.app"}})
+
+    # Configure CORS, allowing origins from an environment variable.
+    # The variable should be a comma-separated list of origins.
+    # Example: "http://localhost:3000,https://my-frontend.com"
+    allowed_origins_str = os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,https://pai-naidee-ui-spark.vercel.app",
+    )
+    allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
@@ -72,8 +82,12 @@ def create_app(config_name):
     return app
 
 
-config_name = os.getenv("FLASK_ENV", "default")
-app = create_app(config_name)
-
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    # This block is for local development only.
+    # In production, the app is created and run by a WSGI server like Gunicorn via wsgi.py.
+    config_name = os.getenv("FLASK_ENV", "development")
+    app = create_app(config_name)
+    port = int(os.environ.get("PORT", 5000))
+    # Debug mode should only be enabled in development
+    is_debug = config_name == "development"
+    app.run(host="0.0.0.0", port=port, debug=is_debug)
