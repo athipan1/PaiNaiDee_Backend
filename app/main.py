@@ -124,12 +124,7 @@ This implementation focuses on:
     @app.get("/health", tags=["health"])
     async def health_check():
         """Simple health check endpoint"""
-        return {
-            "status": "healthy",
-            "version": settings.version,
-            "database": "postgresql",
-            "search_engine": "pg_trgm + custom ranking"
-        }
+        return {"status": "ok", "message": "Backend is running"}
     
     return app
 
