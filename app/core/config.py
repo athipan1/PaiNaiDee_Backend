@@ -1,8 +1,8 @@
 import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -43,11 +43,16 @@ class Settings(BaseSettings):
     debug: bool = Field(default=False, env="DEBUG")
     
     # CORS
-    cors_origins: list = [
-        "http://localhost:3000",
-        "https://painaidee.com",
-        "https://frontend-painaidee.web.app"
-    ]
+    cors_origins: List[str] = Field(
+        default="http://localhost:3000,https://pai-naidee-ui-spark.vercel.app",
+        env="CORS_ORIGINS"
+    )
+
+    @field_validator("cors_origins", mode="before")
+    def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v
     
     # Pydantic v2 configuration
     model_config = SettingsConfigDict(
