@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import math
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 
 class AttractionService:
@@ -26,13 +27,20 @@ class AttractionService:
 
         # Main query to select attractions and join them with the review statistics subquery.
         # An outerjoin (LEFT JOIN) is used to ensure all attractions are returned, even those without reviews.
-        query = db.session.query(
-            Attraction,
-            review_stats_subquery.c.average_rating,
-            review_stats_subquery.c.total_reviews,
-        ).outerjoin(
-            review_stats_subquery,
-            Attraction.id == review_stats_subquery.c.place_id,
+        query = (
+            db.session.query(
+                Attraction,
+                review_stats_subquery.c.average_rating,
+                review_stats_subquery.c.total_reviews,
+            )
+            .outerjoin(
+                review_stats_subquery,
+                Attraction.id == review_stats_subquery.c.place_id,
+            )
+            .options(
+                joinedload(Attraction.rooms),
+                joinedload(Attraction.cars),
+            )
         )
 
         # Apply search and filter criteria to the main query.
@@ -84,6 +92,10 @@ class AttractionService:
             .outerjoin(
                 review_stats_subquery,
                 Attraction.id == review_stats_subquery.c.place_id,
+            )
+            .options(
+                joinedload(Attraction.rooms),
+                joinedload(Attraction.cars),
             )
             .filter(Attraction.id == attraction_id)
             .first()
