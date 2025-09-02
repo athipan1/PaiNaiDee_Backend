@@ -25,24 +25,12 @@ class Attraction(db.Model):
     rooms = db.relationship("Room", backref="attraction", lazy=True)
     cars = db.relationship("Car", backref="attraction", lazy=True)
 
-    def get_review_stats(self):
-        """Get average rating and total review count for this attraction."""
-        from .review import Review
-        result = db.session.query(
-            func.avg(Review.rating).label('average_rating'),
-            func.count(Review.id).label('total_reviews')
-        ).filter(Review.place_id == self.id).first()
-        
-        avg_rating = float(result.average_rating) if result.average_rating else 0
-        total_reviews = result.total_reviews or 0
-        
-        return {
-            "average_rating": round(avg_rating, 1),
-            "total_reviews": total_reviews
-        }
+    def to_dict(self, average_rating=None, total_reviews=None):
+        # The method now accepts review statistics as parameters, avoiding a database call.
+        # Default values are provided to handle cases where an attraction has no reviews.
+        avg_rating_val = round(float(average_rating), 1) if average_rating else 0
+        total_reviews_val = total_reviews or 0
 
-    def to_dict(self):
-        review_stats = self.get_review_stats()
         return {
             "id": self.id,
             "name": self.name,
@@ -60,8 +48,8 @@ class Attraction(db.Model):
             "images": self.image_urls if self.image_urls else [],  # Additional images array
             "rooms": [room.to_dict() for room in self.rooms],
             "cars": [car.to_dict() for car in self.cars],
-            "average_rating": review_stats["average_rating"],
-            "total_reviews": review_stats["total_reviews"]
+            "average_rating": avg_rating_val,
+            "total_reviews": total_reviews_val,
         }
 
     def to_category_dict(self):

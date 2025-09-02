@@ -16,17 +16,23 @@ def get_all_attractions():
     province = request.args.get("province")
     category = request.args.get("category")
 
-    paginated_attractions = AttractionService.get_all_attractions(
+    paginated_results = AttractionService.get_all_attractions(
         page, limit, q, province, category
     )
-    results = [attraction.to_dict() for attraction in paginated_attractions.items]
+
+    # The service now returns tuples of (Attraction, avg_rating, total_reviews).
+    # We unpack these and pass the stats to the to_dict method.
+    results = [
+        attraction.to_dict(average_rating=avg_rating, total_reviews=total_rev)
+        for attraction, avg_rating, total_rev in paginated_results.items
+    ]
 
     pagination_data = {
-        "total_pages": paginated_attractions.pages,
-        "current_page": paginated_attractions.page,
-        "total_items": paginated_attractions.total,
-        "has_next": paginated_attractions.has_next,
-        "has_prev": paginated_attractions.has_prev,
+        "total_pages": paginated_results.pages,
+        "current_page": paginated_results.page,
+        "total_items": paginated_results.total,
+        "has_next": paginated_results.has_next,
+        "has_prev": paginated_results.has_prev,
     }
 
     return standardized_response(
@@ -37,9 +43,17 @@ def get_all_attractions():
 
 @attractions_bp.route("/attractions/<int:attraction_id>", methods=["GET"])
 def get_attraction_detail(attraction_id):
-    attraction = AttractionService.get_attraction_by_id(attraction_id)
+    # The service now returns a tuple: (Attraction, avg_rating, total_reviews)
+    result = AttractionService.get_attraction_by_id(attraction_id)
+    if not result:
+        abort(404, description="Attraction not found.")
+
+    attraction, avg_rating, total_reviews = result
+
     return standardized_response(
-        data=attraction.to_dict(),
+        data=attraction.to_dict(
+            average_rating=avg_rating, total_reviews=total_reviews
+        ),
         message="Attraction retrieved successfully.",
     )
 
