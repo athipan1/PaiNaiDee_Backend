@@ -1,4 +1,5 @@
-from flask import Blueprint, request, abort
+import traceback
+from flask import Blueprint, request, abort, current_app
 from flask_jwt_extended import jwt_required
 from src.services.attraction_service import AttractionService
 from src.utils.response import standardized_response
@@ -10,35 +11,41 @@ attractions_bp = Blueprint("attractions", __name__)
 
 @attractions_bp.route("/attractions", methods=["GET"])
 def get_all_attractions():
-    page = request.args.get("page", 1, type=int)
-    limit = request.args.get("limit", 10, type=int)
-    q = request.args.get("q")
-    province = request.args.get("province")
-    category = request.args.get("category")
+    try:
+        page = request.args.get("page", 1, type=int)
+        limit = request.args.get("limit", 10, type=int)
+        q = request.args.get("q")
+        province = request.args.get("province")
+        category = request.args.get("category")
 
-    paginated_results = AttractionService.get_all_attractions(
-        page, limit, q, province, category
-    )
+        paginated_results = AttractionService.get_all_attractions(
+            page, limit, q, province, category
+        )
 
-    # The service now returns tuples of (Attraction, avg_rating, total_reviews).
-    # We unpack these and pass the stats to the to_dict method.
-    results = [
-        attraction.to_dict(average_rating=avg_rating, total_reviews=total_rev)
-        for attraction, avg_rating, total_rev in paginated_results.items
-    ]
+        # The service now returns tuples of (Attraction, avg_rating, total_reviews).
+        # We unpack these and pass the stats to the to_dict method.
+        results = [
+            attraction.to_dict(average_rating=avg_rating, total_reviews=total_rev)
+            for attraction, avg_rating, total_rev in paginated_results.items
+        ]
 
-    pagination_data = {
-        "total_pages": paginated_results.pages,
-        "current_page": paginated_results.page,
-        "total_items": paginated_results.total,
-        "has_next": paginated_results.has_next,
-        "has_prev": paginated_results.has_prev,
-    }
+        pagination_data = {
+            "total_pages": paginated_results.pages,
+            "current_page": paginated_results.page,
+            "total_items": paginated_results.total,
+            "has_next": paginated_results.has_next,
+            "has_prev": paginated_results.has_prev,
+        }
 
-    return standardized_response(
-        data={"attractions": results, "pagination": pagination_data},
-        message="Attractions retrieved successfully.",
-    )
+        return standardized_response(
+            data={"attractions": results, "pagination": pagination_data},
+            message="Attractions retrieved successfully.",
+        )
+    except Exception:
+        current_app.logger.error(traceback.format_exc())
+        return standardized_response(
+            message="An unexpected error occurred.", success=False, status_code=500
+        )
 
 
 @attractions_bp.route("/attractions/<int:attraction_id>", methods=["GET"])
