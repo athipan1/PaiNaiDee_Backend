@@ -28,7 +28,11 @@ class Attraction(db.Model):
     def to_dict(self, average_rating=None, total_reviews=None):
         # The method now accepts review statistics as parameters, avoiding a database call.
         # Default values are provided to handle cases where an attraction has no reviews.
-        avg_rating_val = round(float(average_rating), 1) if average_rating else 0
+        try:
+            avg_rating_val = round(float(average_rating), 1) if average_rating is not None else 0.0
+        except (ValueError, TypeError):
+            avg_rating_val = 0.0
+
         total_reviews_val = total_reviews or 0
 
         return {
