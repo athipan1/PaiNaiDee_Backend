@@ -49,10 +49,14 @@ def search_attractions():
         # ทำการค้นหา
         search_results, total_count = search_service.search_attractions_with_fuzzy(search_query)
         
-        # แปลงผลลัพธ์เป็น dict
+        # Convert results to dict, passing in the pre-calculated review stats
         results = []
         for result in search_results:
-            attraction_dict = result.attraction.to_dict()
+            # The service attaches average_rating and total_reviews to the SearchResult object
+            attraction_dict = result.attraction.to_dict(
+                average_rating=getattr(result, 'average_rating', 0),
+                total_reviews=getattr(result, 'total_reviews', 0)
+            )
             attraction_dict.update({
                 "similarity_score": result.similarity_score,
                 "matched_fields": result.matched_fields,

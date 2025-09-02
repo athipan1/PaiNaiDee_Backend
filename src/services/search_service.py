@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy import text, or_, and_, func
-from src.models import db, Attraction
+from src.models import db, Attraction, Review
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -181,140 +181,114 @@ class SearchService:
         return SequenceMatcher(None, term, text).ratio()
 
     def search_attractions_with_fuzzy(self, search_query: SearchQuery) -> Tuple[List[SearchResult], int]:
-        """Perform fuzzy search on attractions"""
-        
-        # Check if pg_trgm is available
+        """
+        Perform fuzzy search on attractions with integrated review statistics to avoid N+1 queries.
+        """
         use_pg_trgm = self.ensure_pg_trgm_extension()
-        
-        # Start with base query
-        query = db.session.query(Attraction)
-        
-        # Apply basic filters
+
+        # Subquery for review stats, to be joined with the main query.
+        review_stats_subquery = (
+            db.session.query(
+                Review.place_id,
+                func.avg(Review.rating).label("average_rating"),
+                func.count(Review.id).label("total_reviews"),
+            )
+            .group_by(Review.place_id)
+            .subquery()
+        )
+
+        # Base query joining Attraction with review stats.
+        query = db.session.query(
+            Attraction,
+            review_stats_subquery.c.average_rating,
+            review_stats_subquery.c.total_reviews,
+        ).outerjoin(
+            review_stats_subquery,
+            Attraction.id == review_stats_subquery.c.place_id,
+        )
+
+        # Apply standard filters.
         if search_query.province:
-            query = query.filter(
-                Attraction.province.ilike(f"%{search_query.province}%")
-            )
-        
+            query = query.filter(Attraction.province.ilike(f"%{search_query.province}%"))
         if search_query.category:
-            query = query.filter(
-                Attraction.category.ilike(f"%{search_query.category}%")
-            )
+            query = query.filter(Attraction.category.ilike(f"%{search_query.category}%"))
+
+        # Apply rating filters directly in the query.
+        if search_query.min_rating is not None:
+            query = query.filter(review_stats_subquery.c.average_rating >= search_query.min_rating)
+        if search_query.max_rating is not None:
+            query = query.filter(review_stats_subquery.c.average_rating <= search_query.max_rating)
+
+        # The rest of the logic performs fuzzy matching on the pre-filtered results.
+        # This is less efficient than a full DB solution but avoids a major refactor of fuzzy logic.
         
-        # Apply fuzzy search if query is provided
-        if search_query.query and use_pg_trgm:
-            # Use PostgreSQL pg_trgm for advanced fuzzy search
-            similarity_threshold = 0.3
-            expanded_terms = self.expand_query_with_synonyms(
-                search_query.query, 
-                search_query.language
-            )
-            
-            # Build complex similarity query
-            similarity_conditions = []
-            for term in expanded_terms[:3]:  # Limit to prevent overly complex queries
-                similarity_conditions.extend([
-                    func.similarity(Attraction.name, term) > similarity_threshold,
-                    func.similarity(Attraction.description, term) > similarity_threshold,
-                    func.similarity(Attraction.province, term) > similarity_threshold
-                ])
-            
-            if similarity_conditions:
-                query = query.filter(or_(*similarity_conditions))
-                
-                # Add similarity score to select
-                max_similarity = func.greatest(
-                    func.similarity(Attraction.name, search_query.query),
-                    func.similarity(Attraction.description, search_query.query),
-                    func.similarity(Attraction.province, search_query.query)
-                ).label('pg_similarity')
-                
-                attractions_with_similarity = query.add_columns(max_similarity).all()
-                
-                # Convert to SearchResult objects
-                results = []
-                for attraction, pg_similarity in attractions_with_similarity:
-                    results.append(SearchResult(
-                        attraction=attraction,
-                        similarity_score=float(pg_similarity or 0),
-                        matched_fields=[f"pg_trgm:{pg_similarity:.3f}"]
-                    ))
-                
-            else:
-                attractions = query.all()
-                results = [SearchResult(
-                    attraction=attraction,
-                    similarity_score=1.0,
-                    matched_fields=["no_match"]
-                ) for attraction in attractions]
+        initial_results = query.all()
         
-        elif search_query.query:
-            # Fallback to Python-based fuzzy search
-            attractions = query.all()
-            expanded_terms = self.expand_query_with_synonyms(
-                search_query.query, 
-                search_query.language
-            )
-            
-            results = []
-            for attraction in attractions:
+        # This list will hold tuples of (Attraction, avg_rating, total_reviews)
+        attraction_data_tuples = initial_results
+
+        # Fuzzy search logic now operates on this pre-fetched and pre-filtered data.
+        if search_query.query:
+            expanded_terms = self.expand_query_with_synonyms(search_query.query, search_query.language)
+            results_with_scores = []
+            for attraction, avg_rating, total_reviews in attraction_data_tuples:
                 similarity_score, matched_fields = self.calculate_similarity_score(
-                    expanded_terms, 
-                    attraction, 
-                    use_pg_trgm
+                    expanded_terms, attraction, use_pg_trgm
                 )
-                
-                # Only include results with meaningful similarity
                 if similarity_score > 0.2:
-                    results.append(SearchResult(
+                    # We create a temporary object to hold all data for sorting
+                    temp_result = SearchResult(
                         attraction=attraction,
                         similarity_score=similarity_score,
-                        matched_fields=matched_fields
-                    ))
-        else:
-            # No search query - return all with base score
-            attractions = query.all()
-            results = [SearchResult(
-                attraction=attraction,
-                similarity_score=1.0,
-                matched_fields=["all"]
-            ) for attraction in attractions]
-        
-        # Apply rating filters
-        if search_query.min_rating is not None or search_query.max_rating is not None:
-            filtered_results = []
-            for result in results:
-                review_stats = result.attraction.get_review_stats()
-                rating = review_stats.get("average_rating", 0)
-                
-                include = True
-                if search_query.min_rating is not None and rating < search_query.min_rating:
-                    include = False
-                if search_query.max_rating is not None and rating > search_query.max_rating:
-                    include = False
-                
-                if include:
-                    filtered_results.append(result)
+                        matched_fields=matched_fields,
+                    )
+                    # Also attach stats for sorting
+                    temp_result.average_rating = avg_rating if avg_rating else 0
+                    temp_result.total_reviews = total_reviews if total_reviews else 0
+                    results_with_scores.append(temp_result)
             
-            results = filtered_results
-        
-        # Sort results
+            results = results_with_scores
+        else:
+            # No query, just convert all results to SearchResult objects
+            results = [
+                SearchResult(
+                    attraction=attraction,
+                    similarity_score=1.0,
+                    matched_fields=["all"],
+                )
+                for attraction, avg_rating, total_reviews in attraction_data_tuples
+            ]
+            # Attach stats for sorting
+            for i, res in enumerate(results):
+                _, avg_rating, total_reviews = attraction_data_tuples[i]
+                res.average_rating = avg_rating if avg_rating else 0
+                res.total_reviews = total_reviews if total_reviews else 0
+
+        # Sort results using the pre-fetched stats.
         if search_query.sort_by == "relevance":
             results.sort(key=lambda x: x.similarity_score, reverse=True)
         elif search_query.sort_by == "rating":
-            results.sort(
-                key=lambda x: x.attraction.get_review_stats().get("average_rating", 0), 
-                reverse=True
-            )
+            results.sort(key=lambda x: x.average_rating, reverse=True)
         elif search_query.sort_by == "name":
             results.sort(key=lambda x: x.attraction.name)
-        
+
         total_count = len(results)
         
         # Apply pagination
         start_idx = search_query.offset
         end_idx = start_idx + search_query.limit
         paginated_results = results[start_idx:end_idx]
-        
+
+        # The route needs the full tuple for to_dict, so we reconstruct it.
+        # However, the route was simplified to not need this. The `to_dict` in the route
+        # now gets its data from the SearchResult object itself.
+        # Let's adjust the route to use the SearchResult object correctly.
+        # For now, the service returns this list of SearchResult objects.
+        # The route will need to be adapted.
+
+        # I will modify the route to pass the pre-calculated stats into to_dict.
+        # The service will return a list of SearchResult objects, and I'll add the stats to them.
+
         return paginated_results, total_count
 
     def get_search_suggestions(
