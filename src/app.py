@@ -31,22 +31,17 @@ def create_app(config_name):
 
     db.init_app(app)
 
-    # Configure CORS for the application.
-    # The primary production frontend is allowed by default.
-    # This can be overridden by the `CORS_ALLOWED_ORIGINS` environment variable
-    # for other environments (e.g., "http://localhost:3000,http://127.0.0.1:3000").
-    # For test mode, you can set `CORS_ALLOWED_ORIGINS=*` but be aware of the security risks.
-    default_origins = "https://pai-naidee-ui-spark.vercel.app"
-    allowed_origins_str = os.environ.get("CORS_ALLOWED_ORIGINS", default_origins)
-
-    if allowed_origins_str == "*":
-        # WARNING: Allowing all origins is a security risk.
-        # This should only be used for specific testing scenarios.
-        origins = "*"
-    else:
-        origins = [origin.strip() for origin in allowed_origins_str.split(",")]
-
-    CORS(app, resources={r"/api/*": {"origins": origins}})
+    # ✅ Allow production + development domains
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "https://pai-naidee-ui-spark.vercel.app",  # production frontend
+                "http://localhost:3000",                   # React dev
+                "http://127.0.0.1:3000",                   # React dev alternative
+                "http://127.0.0.1:5500",                   # static HTML dev
+            ]
+        }
+    })
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
