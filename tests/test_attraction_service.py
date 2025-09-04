@@ -2,24 +2,47 @@ import pytest
 from src.models import db, Attraction, Review
 from src.services.attraction_service import AttractionService
 
+
 @pytest.fixture
 def setup_attractions_and_reviews(app):
     with app.app_context():
         # Attraction 1: 2 reviews
-        attraction1 = Attraction(name="Beach", province="South", category="Nature")
+        attraction1 = Attraction(
+            name="Beach",
+            province="South",
+            district="District1",
+            location="Location1",
+            address="Address1",
+        )
         db.session.add(attraction1)
         db.session.commit()
-        review1_1 = Review(place_id=attraction1.id, user_id=1, rating=5, comment="Amazing!")
+        review1_1 = Review(
+            place_id=attraction1.id, user_id=1, rating=5, comment="Amazing!"
+        )
         review1_2 = Review(place_id=attraction1.id, user_id=2, rating=3, comment="Okay")
 
         # Attraction 2: 1 review
-        attraction2 = Attraction(name="Mountain", province="North", category="Adventure")
+        attraction2 = Attraction(
+            name="Mountain",
+            province="North",
+            district="District2",
+            location="Location2",
+            address="Address2",
+        )
         db.session.add(attraction2)
         db.session.commit()
-        review2_1 = Review(place_id=attraction2.id, user_id=1, rating=4, comment="Great view")
+        review2_1 = Review(
+            place_id=attraction2.id, user_id=1, rating=4, comment="Great view"
+        )
 
         # Attraction 3: No reviews
-        attraction3 = Attraction(name="Museum", province="Central", category="Culture")
+        attraction3 = Attraction(
+            name="Museum",
+            province="Central",
+            district="District3",
+            location="Location3",
+            address="Address3",
+        )
 
         db.session.add_all([review1_1, review1_2, review2_1, attraction3])
         db.session.commit()
@@ -27,7 +50,7 @@ def setup_attractions_and_reviews(app):
         yield {
             "attraction1_id": attraction1.id,
             "attraction2_id": attraction2.id,
-            "attraction3_id": attraction3.id
+            "attraction3_id": attraction3.id,
         }
 
         # Teardown
@@ -35,10 +58,13 @@ def setup_attractions_and_reviews(app):
         db.session.query(Attraction).delete()
         db.session.commit()
 
+
 def test_get_all_attractions_with_reviews(app, setup_attractions_and_reviews):
     with app.app_context():
         # Call the service to get all attractions
-        paginated_results = AttractionService.get_all_attractions(page=1, limit=10, q=None, province=None, category=None)
+        paginated_results = AttractionService.get_all_attractions(
+            page=1, limit=10, q=None, province=None
+        )
 
         assert paginated_results.total == 3
 

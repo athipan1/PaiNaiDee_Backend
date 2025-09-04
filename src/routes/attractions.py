@@ -16,10 +16,9 @@ def get_all_attractions():
         limit = request.args.get("limit", 10, type=int)
         q = request.args.get("q")
         province = request.args.get("province")
-        category = request.args.get("category")
 
         paginated_results = AttractionService.get_all_attractions(
-            page, limit, q, province, category
+            page, limit, q, province
         )
 
         # The service now returns tuples of (Attraction, avg_rating, total_reviews).
@@ -68,14 +67,7 @@ def get_attraction_detail(attraction_id):
 @attractions_bp.route("/attractions", methods=["POST"])
 @jwt_required()
 def add_attraction():
-    if "cover_image" not in request.files:
-        abort(400, description="Missing 'cover_image' in request.")
-
-    file = request.files["cover_image"]
-    if file.filename == "":
-        abort(400, description="No selected file.")
-
-    data = request.form.to_dict()
+    data = request.get_json()
     try:
         validated_data = AttractionSchema().load(data)
     except ValidationError as err:
@@ -84,7 +76,7 @@ def add_attraction():
         )
 
     try:
-        new_attraction = AttractionService.add_attraction(validated_data, file)
+        new_attraction = AttractionService.add_attraction(validated_data)
         return standardized_response(
             data={"id": new_attraction.id},
             message="Attraction added successfully.",
@@ -127,37 +119,3 @@ def delete_attraction(attraction_id):
         )
     except Exception as e:
         abort(500, description=f"Failed to delete attraction. Error: {e}")
-
-
-@attractions_bp.route("/attractions/category/<category_name>", methods=["GET"])
-def get_attractions_by_category(category_name):
-    """Get attractions by category name - public access, no authentication required"""
-    try:
-        attractions = AttractionService.get_attractions_by_category(category_name)
-        results = [attraction.to_category_dict() for attraction in attractions]
-        
-        return standardized_response(
-            data=results,
-            message=f"Attractions in category '{category_name}' retrieved successfully.",
-        )
-    except Exception as e:
-        abort(500, description=f"Failed to retrieve attractions by category. Error: {e}")
-
-
-@attractions_bp.route("/accommodations/nearby/<int:attraction_id>", methods=["GET"])
-def get_nearby_accommodations(attraction_id):
-    """Get nearby accommodations for a given attraction"""
-    radius = request.args.get("radius", 10, type=int)
-    try:
-        nearby_accommodations = AttractionService.get_nearby_attractions(
-            attraction_id, radius_km=radius
-        )
-        results = [
-            accommodation.to_dict() for accommodation in nearby_accommodations
-        ]
-        return standardized_response(
-            data=results,
-            message="Nearby accommodations retrieved successfully.",
-        )
-    except Exception as e:
-        abort(500, description=f"Failed to retrieve nearby accommodations. Error: {e}")
