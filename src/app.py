@@ -41,6 +41,11 @@ def create_app(config_name):
             ]
         }
     })
+    print("🚀 CORS origins allowed:",
+         ["http://127.0.0.1:3000",
+          "http://localhost:3000",
+          "https://pai-naidee-ui-spark.vercel.app",
+          "https://athipan01-painaidee-backend.hf.space"])
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
