@@ -9,7 +9,6 @@ class Attraction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
-    address = db.Column(db.String(255))
     province = db.Column(db.String(100))
     district = db.Column(db.String(100))
     latitude = db.Column(db.Float)
@@ -39,7 +38,6 @@ class Attraction(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "address": self.address,
             "province": self.province,
             "district": self.district,
             "location": {"lat": self.latitude, "lng": self.longitude},

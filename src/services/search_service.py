@@ -124,7 +124,6 @@ class SearchService:
             ("province", attraction.province, 0.7),
             ("district", attraction.district, 0.6),
             ("category", attraction.category, 0.9),
-            ("address", attraction.address, 0.5),
         ]
         
         for field_name, field_value, weight in search_fields:

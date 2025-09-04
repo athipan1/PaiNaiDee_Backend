@@ -126,7 +126,6 @@ class AttractionService:
         new_attraction = Attraction(
             name=data.get("name"),
             description=data.get("description"),
-            address=data.get("address"),
             province=data.get("province"),
             district=data.get("district"),
             latitude=data.get("latitude"),
