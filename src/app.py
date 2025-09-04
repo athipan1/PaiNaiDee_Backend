@@ -31,14 +31,13 @@ def create_app(config_name):
 
     db.init_app(app)
 
-    # ✅ Allow production + development domains
     CORS(app, resources={
         r"/api/*": {
             "origins": [
-                "https://pai-naidee-ui-spark.vercel.app",  # production frontend
-                "http://localhost:3000",                   # React dev
-                "http://127.0.0.1:3000",                   # React dev alternative
-                "http://127.0.0.1:5500",                   # static HTML dev
+                "http://127.0.0.1:3000",
+                "http://localhost:3000",
+                "https://pai-naidee-ui-spark.vercel.app",
+                "https://athipan01-painaidee-backend.hf.space"
             ]
         }
     })
