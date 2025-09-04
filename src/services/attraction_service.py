@@ -1,14 +1,11 @@
 from src.models import db, Attraction, Review
-from werkzeug.utils import secure_filename
-import os
-import math
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 
 class AttractionService:
     @staticmethod
-    def get_all_attractions(page, limit, q, province, category):
+    def get_all_attractions(page, limit, q, province):
         """
         Retrieves attractions with their review statistics in a single, optimized query.
         This approach uses a subquery to pre-calculate review stats and joins it
@@ -27,20 +24,13 @@ class AttractionService:
 
         # Main query to select attractions and join them with the review statistics subquery.
         # An outerjoin (LEFT JOIN) is used to ensure all attractions are returned, even those without reviews.
-        query = (
-            db.session.query(
-                Attraction,
-                review_stats_subquery.c.average_rating,
-                review_stats_subquery.c.total_reviews,
-            )
-            .outerjoin(
-                review_stats_subquery,
-                Attraction.id == review_stats_subquery.c.place_id,
-            )
-            .options(
-                joinedload(Attraction.rooms),
-                joinedload(Attraction.cars),
-            )
+        query = db.session.query(
+            Attraction,
+            review_stats_subquery.c.average_rating,
+            review_stats_subquery.c.total_reviews,
+        ).outerjoin(
+            review_stats_subquery,
+            Attraction.id == review_stats_subquery.c.place_id,
         )
 
         # Apply search and filter criteria to the main query.
@@ -54,8 +44,6 @@ class AttractionService:
             )
         if province:
             query = query.filter(Attraction.province.ilike(f"%{province}%"))
-        if category:
-            query = query.filter(Attraction.category.ilike(f"%{category}%"))
 
         # Order the results and apply pagination.
         paginated_results = query.order_by(Attraction.name).paginate(
@@ -93,10 +81,6 @@ class AttractionService:
                 review_stats_subquery,
                 Attraction.id == review_stats_subquery.c.place_id,
             )
-            .options(
-                joinedload(Attraction.rooms),
-                joinedload(Attraction.cars),
-            )
             .filter(Attraction.id == attraction_id)
             .first()
         )
@@ -105,7 +89,9 @@ class AttractionService:
             from flask import abort
 
             # Check if the attraction exists at all, even without reviews
-            attraction_exists = db.session.query(Attraction.id).filter_by(id=attraction_id).first()
+            attraction_exists = (
+                db.session.query(Attraction.id).filter_by(id=attraction_id).first()
+            )
             if not attraction_exists:
                 abort(404, description="Attraction not found.")
 
@@ -113,30 +99,18 @@ class AttractionService:
             attraction = db.session.get(Attraction, attraction_id)
             return attraction, None, None
 
-
         # The query returns a tuple (Attraction, average_rating, total_reviews)
         return result
 
     @staticmethod
-    def add_attraction(data, file):
-        filename = secure_filename(file.filename)
-        upload_path = os.path.join("uploads", filename)
-        file.save(upload_path)
-
+    def add_attraction(data):
         new_attraction = Attraction(
             name=data.get("name"),
             description=data.get("description"),
+            location=data.get("location"),
             province=data.get("province"),
             district=data.get("district"),
-            latitude=data.get("latitude"),
-            longitude=data.get("longitude"),
-            category=data.get("category"),
-            opening_hours=data.get("opening_hours"),
-            entrance_fee=data.get("entrance_fee"),
-            contact_phone=data.get("contact_phone"),
-            website=data.get("website"),
-            main_image_url=filename,
-            image_urls=data.get("image_urls"),
+            address=data.get("address"),
         )
         db.session.add(new_attraction)
         db.session.commit()
@@ -147,6 +121,7 @@ class AttractionService:
         attraction = db.session.get(Attraction, attraction_id)
         if not attraction:
             from flask import abort
+
             abort(404, description="Attraction not found.")
         for key, value in data.items():
             if hasattr(attraction, key):
@@ -159,49 +134,7 @@ class AttractionService:
         attraction = db.session.get(Attraction, attraction_id)
         if not attraction:
             from flask import abort
+
             abort(404, description="Attraction not found.")
         db.session.delete(attraction)
         db.session.commit()
-
-    @staticmethod
-    def get_attractions_by_category(category_name):
-        """Get attractions by category name using case-insensitive search"""
-        query = Attraction.query.filter(
-            Attraction.category.ilike(f"%{category_name}%")
-        )
-        attractions = query.order_by(Attraction.name).all()
-        return attractions
-
-    @staticmethod
-    def get_nearby_attractions(attraction_id, radius_km=10):
-        """Find nearby attractions using the Haversine formula."""
-        base_attraction = AttractionService.get_attraction_by_id(attraction_id)
-        if not base_attraction.latitude or not base_attraction.longitude:
-            return []
-
-        R = 6371  # Earth radius in kilometers
-        base_lat = math.radians(base_attraction.latitude)
-        base_lon = math.radians(base_attraction.longitude)
-
-        nearby_attractions = []
-        all_attractions = Attraction.query.filter(Attraction.id != attraction_id).all()
-
-        for attraction in all_attractions:
-            if attraction.latitude and attraction.longitude:
-                lat = math.radians(attraction.latitude)
-                lon = math.radians(attraction.longitude)
-
-                dlon = lon - base_lon
-                dlat = lat - base_lat
-
-                a = (
-                    math.sin(dlat / 2) ** 2
-                    + math.cos(base_lat) * math.cos(lat) * math.sin(dlon / 2) ** 2
-                )
-                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-                distance = R * c
-
-                if distance <= radius_km:
-                    nearby_attractions.append(attraction)
-
-        return nearby_attractions

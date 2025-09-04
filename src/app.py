@@ -78,6 +78,17 @@ def create_app(config_name):
 
     register_error_handlers(app)
 
+    @app.errorhandler(AttributeError)
+    def handle_attribute_error(e):
+        # This is a fallback for cases where a query might try to access a non-existent column.
+        # It's a good idea to log these errors to identify and fix them.
+        app.logger.error(f"Caught an AttributeError: {e}")
+        return standardized_response(
+            message="There was a problem with the request. A non-existent field may have been requested.",
+            success=False,
+            status_code=400,
+        )
+
     @app.cli.command("init-db")
     def init_db_command():
         """Creates the database tables."""
