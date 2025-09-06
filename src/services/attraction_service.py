@@ -119,9 +119,12 @@ class AttractionService:
 
     @staticmethod
     def add_attraction(data, file):
-        filename = secure_filename(file.filename)
-        upload_path = os.path.join("uploads", filename)
-        file.save(upload_path)
+        image_url = "https://example.com/default.jpg"
+        if file:
+            filename = secure_filename(file.filename)
+            upload_path = os.path.join("uploads", filename)
+            file.save(upload_path)
+            image_url = filename
 
         new_attraction = Attraction(
             name=data.get("name"),
@@ -135,7 +138,7 @@ class AttractionService:
             entrance_fee=data.get("entrance_fee"),
             contact_phone=data.get("contact_phone"),
             website=data.get("website"),
-            main_image_url=filename,
+            main_image_url=image_url,
             image_urls=data.get("image_urls"),
         )
         db.session.add(new_attraction)

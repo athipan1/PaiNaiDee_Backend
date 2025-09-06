@@ -7,6 +7,7 @@ from marshmallow import Schema, fields, ValidationError
 posts_bp = Blueprint("posts", __name__)
 
 class PostSchema(Schema):
+    title = fields.Str()
     content = fields.Str(required=True)
 
 class CommentSchema(Schema):
@@ -46,9 +47,15 @@ def create_new_post():
     except ValidationError as err:
         return standardized_response(data=err.messages, success=False, status_code=400)
 
+    title = validated_data.get("title")
     content = validated_data["content"]
 
-    new_post, message = PostService.create_post(user_id=current_user.id, content=content)
+    if title:
+        final_content = f"{title}\n\n{content}"
+    else:
+        final_content = content
+
+    new_post, message = PostService.create_post(user_id=current_user.id, content=final_content)
 
     if not new_post:
         abort(500, description=message)
