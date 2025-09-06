@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     app_name: str = "PaiNaiDee Backend API - Phase 1"
     version: str = "1.0.0"
     debug: bool = Field(default=False, env="DEBUG")
+    attractions_json_path: str = Field(default="attractions_cleaned_ready.json", env="ATTRACTIONS_JSON_PATH")
     
     # CORS
     cors_origins: List[str] = Field(
