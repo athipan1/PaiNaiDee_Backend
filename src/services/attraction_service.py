@@ -48,14 +48,14 @@ class AttractionService:
             search_term = f"%{q}%"
             query = query.filter(
                 db.or_(
-                    Attraction.name.ilike(search_term),
-                    Attraction.description.ilike(search_term),
+                    func.lower(Attraction.name).like(func.lower(search_term)),
+                    func.lower(Attraction.description).like(func.lower(search_term)),
                 )
             )
         if province:
-            query = query.filter(Attraction.province.ilike(f"%{province}%"))
+            query = query.filter(func.lower(Attraction.province).like(func.lower(f"%{province}%")))
         if category:
-            query = query.filter(Attraction.category.ilike(f"%{category}%"))
+            query = query.filter(func.lower(Attraction.category).like(func.lower(f"%{category}%")))
 
         # Order the results and apply pagination.
         paginated_results = query.order_by(Attraction.name).paginate(
