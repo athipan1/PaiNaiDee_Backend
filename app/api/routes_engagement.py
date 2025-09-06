@@ -8,23 +8,17 @@ from app.schemas.engagement import (
     PostLikeCreate, PostCommentCreate, PostCommentUpdate, PostCommentCreateRequest,
     PostCommentResponse, PostEngagementResponse, EngagementActionResponse
 )
+from app.auth.security import get_current_user, get_optional_current_user
+from src.models import User
 
 router = APIRouter(prefix="/api", tags=["engagement"])
-
-
-def get_current_user_id() -> str:
-    """
-    TODO: Extract user ID from JWT token
-    For now, return a dummy user ID for Phase 1 testing
-    """
-    return "user_123_demo"  # TODO: Replace with actual auth
 
 
 @router.post("/posts/{post_id}/like", response_model=EngagementActionResponse)
 async def like_post(
     post_id: str,
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Like or unlike a post.
@@ -39,7 +33,7 @@ async def like_post(
     - Returns the updated like count
     """
     try:
-        result = await engagement_service.like_post(post_id, current_user_id, db)
+        result = await engagement_service.like_post(post_id, str(current_user.id), db)
         if not result.success:
             if "not found" in result.message:
                 raise HTTPException(status_code=404, detail=result.message)
@@ -57,7 +51,7 @@ async def create_comment(
     post_id: str,
     comment_request: PostCommentCreateRequest,
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Add a comment to a post.
@@ -75,7 +69,7 @@ async def create_comment(
     try:
         # Create the full comment data with post_id from URL
         comment_data = PostCommentCreate(post_id=post_id, content=comment_request.content)
-        result = await engagement_service.comment_on_post(comment_data, current_user_id, db)
+        result = await engagement_service.comment_on_post(comment_data, str(current_user.id), db)
         return result
     except ValueError as e:
         if "not found" in str(e):
@@ -91,7 +85,7 @@ async def update_comment(
     comment_id: str,
     comment_data: PostCommentUpdate,
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Update a comment (only by the comment author).
@@ -107,7 +101,7 @@ async def update_comment(
     - Returns the updated comment with new timestamp
     """
     try:
-        result = await engagement_service.update_comment(comment_id, comment_data, current_user_id, db)
+        result = await engagement_service.update_comment(comment_id, comment_data, str(current_user.id), db)
         return result
     except ValueError as e:
         if "not found" in str(e):
@@ -124,7 +118,7 @@ async def update_comment(
 async def delete_comment(
     comment_id: str,
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Delete a comment (only by the comment author).
@@ -138,7 +132,7 @@ async def delete_comment(
     - Returns the updated comment count
     """
     try:
-        result = await engagement_service.delete_comment(comment_id, current_user_id, db)
+        result = await engagement_service.delete_comment(comment_id, str(current_user.id), db)
         if not result.success:
             if "not found" in result.message:
                 raise HTTPException(status_code=404, detail=result.message)
@@ -158,7 +152,7 @@ async def get_post_engagement(
     post_id: str,
     limit_comments: int = 5,
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ):
     """
     Get engagement data for a post (likes, comments, user's like status).
@@ -171,10 +165,11 @@ async def get_post_engagement(
     
     **Features:**
     - Returns like/comment counts
-    - Indicates if current user has liked the post
+    - Indicates if current user has liked the post (if authenticated)
     - Includes recent comments with timestamps
     """
     try:
+        current_user_id = str(current_user.id) if current_user else None
         result = await engagement_service.get_post_engagement(
             post_id, current_user_id, db, limit_comments
         )

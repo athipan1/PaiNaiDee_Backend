@@ -49,8 +49,27 @@ def mock_post_engagement_response(mock_comment_response):
     )
 
 
+from app.auth.security import get_current_user, get_optional_current_user
+from src.models import User
+
 class TestEngagementAPI:
     """Test cases for Engagement API endpoints"""
+
+    @pytest.fixture(autouse=True)
+    def override_auth_dependency(self):
+        """Fixture to override authentication dependency for all tests in this class."""
+        mock_user = User(id=1, username="testuser")
+
+        def mock_get_current_user():
+            return mock_user
+
+        def mock_get_optional_current_user():
+            return mock_user
+
+        app.dependency_overrides[get_current_user] = mock_get_current_user
+        app.dependency_overrides[get_optional_current_user] = mock_get_optional_current_user
+        yield
+        app.dependency_overrides.clear()
 
     @patch('app.services.engagement_service.engagement_service.like_post')
     def test_like_post_success(self, mock_like_post, client, mock_engagement_response):

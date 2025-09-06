@@ -39,13 +39,20 @@ def login():
     username = validated_data["username"]
     password = validated_data["password"]
 
-    access_token, refresh_token = AuthService.login_user(username, password)
+    user, access_token, refresh_token = AuthService.login_user(username, password)
 
-    if not access_token:
+    if not user:
         abort(401, description="Invalid credentials.")
 
     return standardized_response(
-        data={"access_token": access_token, "refresh_token": refresh_token},
+        data={
+            "success": True,
+            "user": user.to_dict(),
+            "token": {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+            },
+        },
         message="Login successful.",
     )
 

@@ -23,11 +23,11 @@ class AuthService:
         user = User.query.filter_by(username=username).first()
 
         if not user or not check_password_hash(user.password, password):
-            return None, None
+            return None, None, None
 
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
-        return access_token, refresh_token
+        return user, access_token, refresh_token
 
     @staticmethod
     def refresh_token(identity):

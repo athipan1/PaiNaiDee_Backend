@@ -6,16 +6,10 @@ import json
 from app.db.session import get_async_db
 from app.services.post_service import post_service
 from app.schemas.posts import PostCreate, PostUploadResponse, PostMediaCreate, PostListResponse, PostResponse
+from app.auth.security import get_current_user
+from src.models import User
 
 router = APIRouter(prefix="/api", tags=["posts"])
-
-
-def get_current_user_id() -> str:
-    """
-    TODO: Extract user ID from JWT token
-    For now, return a dummy user ID for Phase 1 testing
-    """
-    return "user_123_demo"  # TODO: Replace with actual auth
 
 
 @router.post("/posts", response_model=PostUploadResponse)
@@ -27,7 +21,7 @@ async def create_post(
     lng: Optional[float] = Form(None, description="Longitude"),
     media_files: List[UploadFile] = File(..., description="Media files (images/videos)"),
     db: AsyncSession = Depends(get_async_db),
-    current_user_id: str = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create a new post with media uploads.
@@ -76,8 +70,8 @@ async def create_post(
             # TODO: Upload to cloud storage (S3, GCS, etc.)
             # For now, create dummy URLs
             media_type = "image" if file.content_type.startswith('image/') else "video"
-            fake_url = f"https://storage.example.com/posts/{current_user_id}/{file.filename}"
-            fake_thumb_url = f"https://storage.example.com/posts/{current_user_id}/thumb_{file.filename}" if media_type == "video" else None
+            fake_url = f"https://storage.example.com/posts/{current_user.id}/{file.filename}"
+            fake_thumb_url = f"https://storage.example.com/posts/{current_user.id}/thumb_{file.filename}" if media_type == "video" else None
             
             media_list.append(PostMediaCreate(
                 media_type=media_type,
@@ -100,7 +94,7 @@ async def create_post(
         )
         
         # Create post
-        result = await post_service.create_post(post_data, current_user_id, db)
+        result = await post_service.create_post(post_data, str(current_user.id), db)
         return result
         
     except HTTPException:

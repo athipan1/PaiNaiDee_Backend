@@ -45,7 +45,7 @@ def admin_token(client, app, admin_user_data):
     })
     
     if response.status_code == 200:
-        return response.get_json()["data"]["access_token"]
+        return response.get_json()["data"]["token"]["access_token"]
         
     pytest.fail(f"Could not authenticate admin user: {response.get_json()}")
 

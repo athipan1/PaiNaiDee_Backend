@@ -15,5 +15,8 @@ def test_login(client, app):
     rv = client.post("/api/auth/login", json=login_data)
     assert rv.status_code == 200
     json_data = rv.get_json()
-    assert json_data["success"] is True
-    assert "access_token" in json_data["data"]
+    assert json_data["data"]["success"] is True
+    assert "user" in json_data["data"]
+    assert "token" in json_data["data"]
+    assert "access_token" in json_data["data"]["token"]
+    assert "refresh_token" in json_data["data"]["token"]
