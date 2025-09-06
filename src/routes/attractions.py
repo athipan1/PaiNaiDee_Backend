@@ -68,12 +68,16 @@ def get_attraction_detail(attraction_id):
 @attractions_bp.route("/attractions", methods=["POST"])
 @jwt_required()
 def add_attraction():
-    file = None
-    if "cover_image" in request.files and request.files["cover_image"].filename != "":
-        file = request.files["cover_image"]
+    file = request.files.get("cover_image")
 
-    data = request.form.to_dict()
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form.to_dict()
+
     try:
+        # We can use partial validation here if some fields are truly optional
+        # For now, stick to the schema's definition of required fields.
         validated_data = AttractionSchema().load(data)
     except ValidationError as err:
         return standardized_response(
@@ -81,13 +85,15 @@ def add_attraction():
         )
 
     try:
+        # The service layer already handles the file being None
         new_attraction = AttractionService.add_attraction(validated_data, file)
         return standardized_response(
-            data={"id": new_attraction.id},
+            data=new_attraction.to_dict(),
             message="Attraction added successfully.",
             status_code=201,
         )
     except Exception as e:
+        current_app.logger.error(f"Error adding attraction: {e}\n{traceback.format_exc()}")
         abort(500, description=f"Failed to add attraction. Error: {e}")
 
 

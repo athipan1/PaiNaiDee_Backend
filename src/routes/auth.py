@@ -58,7 +58,7 @@ def login():
 
 
 @auth_bp.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True)
+@jwt_required(refresh=True, locations=["json"])
 def refresh():
     current_user_identity = get_jwt_identity()
     new_access_token = AuthService.refresh_token(identity=current_user_identity)
