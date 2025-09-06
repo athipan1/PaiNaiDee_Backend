@@ -68,12 +68,9 @@ def get_attraction_detail(attraction_id):
 @attractions_bp.route("/attractions", methods=["POST"])
 @jwt_required()
 def add_attraction():
-    if "cover_image" not in request.files:
-        abort(400, description="Missing 'cover_image' in request.")
-
-    file = request.files["cover_image"]
-    if file.filename == "":
-        abort(400, description="No selected file.")
+    file = None
+    if "cover_image" in request.files and request.files["cover_image"].filename != "":
+        file = request.files["cover_image"]
 
     data = request.form.to_dict()
     try:

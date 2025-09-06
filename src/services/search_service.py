@@ -364,6 +364,34 @@ class SearchService:
         
         return suggestions[:limit]
 
+    def autocomplete_locations(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Autocomplete for locations based on name and province."""
+        if not query:
+            return []
+
+        # Search for attractions where the name or province contains the query
+        attractions = (
+            db.session.query(Attraction)
+            .filter(
+                or_(
+                    Attraction.name.ilike(f"%{query}%"),
+                    Attraction.province.ilike(f"%{query}%")
+                )
+            )
+            .limit(limit)
+            .all()
+        )
+
+        results = [
+            {
+                "id": attraction.id,
+                "name": attraction.name,
+                "country": attraction.province  # Using province as country as per plan
+            }
+            for attraction in attractions
+        ]
+        return results
+
     def get_trending_searches(self, language: str = "th") -> List[str]:
         """Get trending search terms"""
         trending = {

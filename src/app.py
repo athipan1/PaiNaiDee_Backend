@@ -15,6 +15,7 @@ from src.routes.external_data import external_data_bp
 from src.routes.talk import talk_bp
 from src.routes.users import users_bp
 from src.routes.posts import posts_bp
+from src.routes.locations import locations_bp
 from src.utils.response import standardized_response
 from src.utils.analytics_middleware import APIAnalyticsMiddleware
 from src.errors import register_error_handlers
@@ -66,6 +67,7 @@ def create_app(config_name):
     app.register_blueprint(talk_bp, url_prefix="/api")
     app.register_blueprint(users_bp, url_prefix="/api")
     app.register_blueprint(posts_bp, url_prefix="/api")
+    app.register_blueprint(locations_bp, url_prefix="/api/locations")
 
     # Initialize analytics middleware (disabled for testing - can be enabled with proper database setup)
     # analytics_middleware = APIAnalyticsMiddleware()
@@ -88,6 +90,12 @@ def create_app(config_name):
         from src import models
         db.create_all()
         print("Initialized the database.")
+
+    @app.cli.command("seed-db")
+    def seed_db_command():
+        """Seeds the database with test data."""
+        from seed_db import seed_database
+        seed_database()
 
     return app
 
