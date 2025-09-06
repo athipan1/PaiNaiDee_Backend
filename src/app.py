@@ -14,6 +14,7 @@ from src.routes.dashboard import dashboard_bp
 from src.routes.external_data import external_data_bp
 from src.routes.talk import talk_bp
 from src.routes.users import users_bp
+from src.routes.posts import posts_bp
 from src.utils.response import standardized_response
 from src.utils.analytics_middleware import APIAnalyticsMiddleware
 from src.errors import register_error_handlers
@@ -64,6 +65,7 @@ def create_app(config_name):
     app.register_blueprint(external_data_bp, url_prefix="/api")
     app.register_blueprint(talk_bp, url_prefix="/api")
     app.register_blueprint(users_bp, url_prefix="/api")
+    app.register_blueprint(posts_bp, url_prefix="/api")
 
     # Initialize analytics middleware (disabled for testing - can be enabled with proper database setup)
     # analytics_middleware = APIAnalyticsMiddleware()
@@ -73,7 +75,7 @@ def create_app(config_name):
     def home():
         return standardized_response(message="Welcome to Pai Nai Dii Backend!")
 
-    @app.route("/health", methods=["GET"])
+    @app.route("/api/health", methods=["GET"])
     def health_check():
         return jsonify({"status": "ok"})
 

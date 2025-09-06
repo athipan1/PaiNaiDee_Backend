@@ -19,6 +19,8 @@ class VideoPost(db.Model):
 
     # Relationship to User
     user = db.relationship("User", backref="video_posts")
+    comments = db.relationship("Comment", back_populates="video_post", lazy="dynamic", cascade="all, delete-orphan")
+    likes = db.relationship("Like", back_populates="video_post", lazy="dynamic", cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -34,4 +36,6 @@ class VideoPost(db.Model):
             "file_size": self.file_size,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "likes_count": self.likes.count(),
+            "comments_count": self.comments.count(),
         }

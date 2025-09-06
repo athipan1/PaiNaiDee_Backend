@@ -39,7 +39,8 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     # Production uses DATABASE_URL env var for Railway/Heroku compatibility
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or DevelopmentConfig().SQLALCHEMY_DATABASE_URI
+    # Fallback to the Supabase URL provided by the user.
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or "postgresql://postgres.quptneebcplnmzkyuxlu:tubci4-miqcAq-qadnuz@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres"
 
 
 class HuggingFaceConfig(Config):

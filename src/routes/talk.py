@@ -10,13 +10,50 @@ talk_service = TalkService()
 
 @talk_bp.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
-    if not data or "message" not in data:
-        return jsonify({"error": "Message is required"}), 400
+    """
+    Simplified conversational AI endpoint.
+    Accepts JSON: {"message": "..."}
+    Returns JSON: {"reply": "..."}
+    """
+    try:
+        data = request.get_json()
+        if not data or "message" not in data:
+            return standardized_response(
+                message="Validation error: 'message' is required.",
+                success=False,
+                status_code=400
+            )
 
-    message = data["message"]
-    # Dummy response for now
-    return jsonify({"reply": f"Received your message: {message}"})
+        message = data["message"]
+
+        # Use the talk service to generate a response
+        # We can use default values for sender, receiver, and a new session_id for each predict call
+        result = talk_service.generate_response(
+            sender="user",
+            receiver="PaiNaiDeeAI",
+            message=message,
+            session_id=None  # Or generate a temporary one
+        )
+
+        if not isinstance(result, dict) or 'reply' not in result:
+            return standardized_response(
+                message="Invalid response from talk service",
+                success=False,
+                status_code=500
+            )
+
+        return standardized_response(
+            message="Response generated successfully",
+            data={"reply": result["reply"]}
+        )
+
+    except Exception as e:
+        return standardized_response(
+            message="Failed to generate response",
+            data={"error": str(e)},
+            success=False,
+            status_code=500
+        )
 
 
 @talk_bp.route("/talk", methods=["POST"])
