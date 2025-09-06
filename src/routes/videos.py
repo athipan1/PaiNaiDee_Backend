@@ -1,11 +1,14 @@
 from flask import Blueprint, request, abort
 from flask_jwt_extended import jwt_required, get_current_user
-from marshmallow import ValidationError
+from marshmallow import ValidationError, Schema, fields
 from src.services.video_service import VideoService
 from src.schemas.video import VideoUploadSchema, VideoListSchema
 from src.utils.response import standardized_response
 
 videos_bp = Blueprint("videos", __name__)
+
+class CommentSchema(Schema):
+    content = fields.Str(required=True)
 
 
 @videos_bp.route("/videos/upload", methods=["POST"])
@@ -68,43 +71,65 @@ def get_explore_videos():
     )
 
 
-@videos_bp.route("/videos/<videoId>/like", methods=["POST"])
+@videos_bp.route("/videos/<int:videoId>/like", methods=["POST"])
 @jwt_required()
 def like_video(videoId):
     """Toggle like/unlike on a video."""
-    # Dummy response for now
-    return standardized_response(data={"liked": True, "likes_count": 1})
+    current_user = get_current_user()
+    if not current_user:
+        abort(401, description="Authentication required")
+
+    result, message = VideoService.toggle_like(user_id=current_user.id, video_id=videoId)
+
+    if result is None:
+        abort(404, description=message)
+
+    return standardized_response(data=result, message=message)
 
 
-@videos_bp.route("/videos/<videoId>/comments", methods=["GET"])
+@videos_bp.route("/videos/<int:videoId>/comments", methods=["GET"])
 def get_video_comments(videoId):
     """Fetch comments for a specific video."""
-    # Dummy response for now
-    comments = [
-        {"id": 1, "user": "user1", "comment": "Great video!"},
-        {"id": 2, "user": "user2", "comment": "Awesome content!"},
-    ]
-    return standardized_response(data=comments)
+    comments, message = VideoService.get_comments(video_id=videoId)
+
+    if comments is None:
+        abort(404, description=message)
+
+    return standardized_response(data=[comment.to_dict() for comment in comments], message=message)
 
 
-@videos_bp.route("/videos/<videoId>/comments", methods=["POST"])
+@videos_bp.route("/videos/<int:videoId>/comments", methods=["POST"])
 @jwt_required()
 def add_video_comment(videoId):
     """Add a new comment to a video."""
-    # Dummy response for now
-    data = request.get_json()
-    comment_text = data.get("comment", "")
-    new_comment = {"id": 3, "user": "current_user", "comment": comment_text}
-    return standardized_response(data=new_comment, status_code=201)
+    current_user = get_current_user()
+    if not current_user:
+        abort(401, description="Authentication required")
+
+    try:
+        validated_data = CommentSchema().load(request.get_json())
+    except ValidationError as err:
+        return standardized_response(data=err.messages, success=False, status_code=400)
+
+    content = validated_data["content"]
+
+    new_comment, message = VideoService.add_comment(
+        user_id=current_user.id, video_id=videoId, content=content
+    )
+
+    if not new_comment:
+        abort(404, description=message)
+
+    return standardized_response(data=new_comment.to_dict(), message=message, status_code=201)
 
 
-@videos_bp.route("/videos/<videoId>/share", methods=["POST"])
+@videos_bp.route("/videos/<int:videoId>/share", methods=["POST"])
 @jwt_required()
 def share_video(videoId):
     """Record a video share event."""
-    # In a real application, this might increment a share counter
-    # or log an analytics event. For now, it's just a placeholder.
-    return standardized_response(
-        data={"video_id": videoId, "shared": True},
-        message="Video share event recorded successfully."
-    )
+    result, message = VideoService.record_share(video_id=videoId)
+
+    if result is None:
+        abort(404, description=message)
+
+    return standardized_response(data=result, message=message)

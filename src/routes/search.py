@@ -102,7 +102,7 @@ def search_attractions():
         )
 
 
-@search_bp.route("/search/suggestions", methods=["GET"])
+@search_bp.route("/locations/autocomplete", methods=["GET"])
 def get_search_suggestions():
     """
     ดึงข้อมูล search suggestions สำหรับ autocomplete จากฐานข้อมูลจริง

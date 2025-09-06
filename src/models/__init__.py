@@ -12,5 +12,6 @@ from .car_rental import CarRental  # noqa
 from .video_post import VideoPost  # noqa
 from .api_analytics import APIAnalytics  # noqa
 from .external_data import DataSource, ManualUpdate, ScheduledUpdate  # noqa
-from .project import Project # noqa
-from .task import Task # noqa
+from .project import Project  # noqa
+from .task import Task  # noqa
+from .post import Post, Like, Comment  # noqa

@@ -182,7 +182,7 @@ class TestSearchRoutes:
 
     def test_search_suggestions_endpoint_exists(self, client):
         """Test that search suggestions endpoint is accessible"""
-        response = client.get("/api/search/suggestions?query=วัด&language=th")
+        response = client.get("/api/locations/autocomplete?query=วัด&language=th")
         assert response.status_code == 200
         
         data = response.get_json()
@@ -192,7 +192,7 @@ class TestSearchRoutes:
 
     def test_search_suggestions_empty_query(self, client):
         """Test search suggestions with empty query"""
-        response = client.get("/api/search/suggestions?query=&language=en")
+        response = client.get("/api/locations/autocomplete?query=&language=en")
         assert response.status_code == 200
         
         data = response.get_json()
@@ -202,7 +202,7 @@ class TestSearchRoutes:
     def test_search_suggestions_with_language_param(self, client):
         """Test search suggestions with different language parameters"""
         # Test with Thai language
-        response = client.get("/api/search/suggestions?query=วัด&language=th")
+        response = client.get("/api/locations/autocomplete?query=วัด&language=th")
         assert response.status_code == 200
         
         data = response.get_json()
