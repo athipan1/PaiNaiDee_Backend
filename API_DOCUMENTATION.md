@@ -19,10 +19,10 @@ Some endpoints require a JWT token. In the current implementation, a dummy user 
 
 ### Search
 
-- **GET /search**
-  - Description: Searches for travel posts.
-  - Query Parameters: `q`, `limit`, `offset`
-  - **Note:** This endpoint is currently not working with the fallback SQLite database due to a bug. It requires a PostgreSQL database.
+- **POST /api/search**
+  - Description: Searches for travel posts using a JSON request body.
+  - Request Body: `{"q": "string", "limit": int, "offset": int}`
+  - **Note:** This endpoint requires a PostgreSQL database with the pg_trgm extension enabled.
 
 ### Locations
 
@@ -125,3 +125,4 @@ All Flask endpoints are prefixed with `/api`.
 - `POST /videos/<videoId>/like` (Requires Auth)
 - `GET /videos/<videoId>/comments`
 - `POST /videos/<videoId>/comments` (Requires Auth)
+- `POST /videos/<videoId>/share` (Requires Auth)
