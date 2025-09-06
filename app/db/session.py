@@ -38,10 +38,9 @@ async def get_async_db():
         yield session
 
 
-from app.db.seeding import seed_data
-
 async def init_db():
     """Initialize database, create tables, and seed initial data."""
+    from app.db.seeding import seed_data
     logger.log_event("db.init.start", {"message": "Starting database initialization..."})
     from app.db.models import Base
 
