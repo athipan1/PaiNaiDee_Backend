@@ -17,7 +17,10 @@ class Settings(BaseSettings):
     db_password: str = Field(default="", env="DB_PASSWORD")
     
     # Security
-    secret_key: str | None = Field(default=None, env="SECRET_KEY")
+    jwt_secret_key: str = Field(
+        default="a-secure-default-secret-for-development",
+        env="JWT_SECRET_KEY"
+    )
     
     # OpenAI/LLM configuration
     openai_api_key: str | None = Field(default=None, env="OPENAI_API_KEY")

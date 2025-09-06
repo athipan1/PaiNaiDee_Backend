@@ -96,3 +96,15 @@ def add_video_comment(videoId):
     comment_text = data.get("comment", "")
     new_comment = {"id": 3, "user": "current_user", "comment": comment_text}
     return standardized_response(data=new_comment, status_code=201)
+
+
+@videos_bp.route("/videos/<videoId>/share", methods=["POST"])
+@jwt_required()
+def share_video(videoId):
+    """Record a video share event."""
+    # In a real application, this might increment a share counter
+    # or log an analytics event. For now, it's just a placeholder.
+    return standardized_response(
+        data={"video_id": videoId, "shared": True},
+        message="Video share event recorded successfully."
+    )

@@ -9,11 +9,9 @@ from app.schemas.search import SearchRequest, SearchResponse
 router = APIRouter(prefix="/api", tags=["search"])
 
 
-@router.get("/search", response_model=SearchResponse)
+@router.post("/search", response_model=SearchResponse)
 async def search_posts(
-    q: str = Query(..., description="Search query", min_length=1, max_length=500),
-    limit: int = Query(default=20, ge=1, le=100, description="Number of results to return"),
-    offset: int = Query(default=0, ge=0, description="Offset for pagination"),
+    request: SearchRequest,
     db: AsyncSession = Depends(get_async_db)
 ):
     """
@@ -25,16 +23,16 @@ async def search_posts(
     - Post retrieval using expansion terms (caption ILIKE, tags overlap, location match)
     - Ranking blend (popularity + recency) with configurable weights
     
-    **Example queries:**
-    - `เชียงใหม่` - Searches for Chiang Mai and related landmarks
-    - `ทะเล` - Searches for sea/beach related content
-    - `ภูเขา` - Searches for mountain/hill related content
+    **Example queries in request body:**
+    - `{"q": "เชียงใหม่"}` - Searches for Chiang Mai and related landmarks
+    - `{"q": "ทะเล"}` - Searches for sea/beach related content
+    - `{"q": "ภูเขา"}` - Searches for mountain/hill related content
     """
     try:
         result = await search_service.search_posts(
-            query=q,
-            limit=limit,
-            offset=offset,
+            query=request.q,
+            limit=request.limit,
+            offset=request.offset,
             db=db
         )
         return result
