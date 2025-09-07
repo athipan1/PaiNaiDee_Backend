@@ -117,3 +117,6 @@ Index('idx_post_likes_user_id', PostLike.user_id)
 Index('idx_post_comments_post_id', PostComment.post_id)
 Index('idx_post_comments_user_id', PostComment.user_id)
 Index('idx_post_comments_created_at', PostComment.created_at)
+
+# Import the refactored Attraction model to make it visible to Alembic
+from src.models.attraction import Attraction
