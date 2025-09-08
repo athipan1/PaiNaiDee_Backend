@@ -41,7 +41,9 @@ def create_app(config_name):
                 "http://localhost:3000",
                 "https://pai-naidee-ui-spark.vercel.app",
                 "https://athipan01-painaidee-backend.hf.space"
-            ]
+            ],
+            "methods": ["*"],
+            "allow_headers": ["*"]
         }
     })
     print("🚀 CORS origins allowed:",
