@@ -1,0 +1,9 @@
+INFO:     Will watch for changes in these directories: ['/app']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [4103] using WatchFiles
+🗄️  Using PostgreSQL database
+🇹🇭 Starting PaiNaiDee Backend API - Phase 1
+📍 Contextual Travel Content Search API
+🔗 Documentation: http://localhost:8000/docs
+🔗 Health Check: http://localhost:8000/health
+🔍 Search Example: http://localhost:8000/api/search?q=เชียงใหม่
