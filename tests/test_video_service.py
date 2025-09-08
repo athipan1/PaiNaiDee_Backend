@@ -8,14 +8,24 @@ from src.services.video_service import VideoService
 from werkzeug.datastructures import FileStorage
 
 
+# Import the Base from the new Alembic-compatible setup
+from app.db.session import Base
+
+
 @pytest.fixture
 def app():
     """Create and configure a new app instance for each test."""
     app = create_app("testing")
     
     with app.app_context():
+        # Create tables from both metadata objects
         db.create_all()
+        Base.metadata.create_all(bind=db.engine)
+
         yield app
+
+        # Drop tables in reverse order of creation
+        Base.metadata.drop_all(bind=db.engine)
         db.drop_all()
 
 
