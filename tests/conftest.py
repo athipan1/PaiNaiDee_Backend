@@ -5,13 +5,26 @@ from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
 
 
+# Import the Base from the new Alembic-compatible setup
+from app.db.session import Base
+
+
 @pytest.fixture(scope="function")
 def app():
     app = create_app("testing")
     with app.app_context():
+        # Create tables from both metadata objects
+        # The legacy 'db' object from src/models
         db.create_all()
+        # The new 'Base' object from app/db/session
+        Base.metadata.create_all(bind=db.engine)
+
         yield app
+
         db.session.remove()
+
+        # Drop tables in reverse order of creation to respect foreign keys
+        Base.metadata.drop_all(bind=db.engine)
         db.drop_all()
 
 

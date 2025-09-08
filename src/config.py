@@ -34,7 +34,20 @@ class DockerConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    # Allow overriding the test database with environment variables for CI
+    DB_USER = os.getenv("DB_USER", "postgres")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5433") # Use a different port for CI tests
+    DB_NAME = os.getenv("DB_NAME", "test_db")
+
+    # Default to SQLite if no PG env vars are set, but use PG if they are.
+    if os.getenv("CI"): # A common CI environment variable
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        )
+    else:
+        SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
 
 
 class ProductionConfig(Config):

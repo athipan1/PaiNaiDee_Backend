@@ -1,0 +1,58 @@
+[
+  {
+    "place_id": "mock001",
+    "name": "Wat Arun",
+    "description": "Wat Arun Ratchawararam Ratchawaramahawihan or Wat Arun is a Buddhist temple in Bangkok Yai district of Bangkok, Thailand, on the Thonburi west bank of the Chao Phraya River.",
+    "location": {
+      "lat": 13.7436,
+      "lng": 100.4889
+    },
+    "details": {
+      "province": "Bangkok",
+      "district": "Bangkok Yai",
+      "category": "Temple",
+      "opening_hours": "08:00-18:00",
+      "fee": "100 THB",
+      "phone": "+66 2 891 2185",
+      "website": "http://www.watarun.net/"
+    },
+    "images": [
+      {
+        "url": "https://example.com/watarun_main.jpg",
+        "is_main": true
+      },
+      {
+        "url": "https://example.com/watarun_2.jpg",
+        "is_main": false
+      },
+      {
+        "url": "https://example.com/watarun_3.jpg",
+        "is_main": false
+      }
+    ]
+  },
+  {
+    "place_id": "mock002",
+    "name": "Doi Suthep",
+    "description": "Wat Phra That Doi Suthep is a Theravada Buddhist temple in Chiang Mai Province, Thailand. The temple is often referred to as 'Doi Suthep' although this is actually the name of the mountain where it's located.",
+    "location": {
+      "lat": 18.8050,
+      "lng": 98.9214
+    },
+    "details": {
+      "province": "Chiang Mai",
+      "district": "Mueang Chiang Mai",
+      "category": "Temple",
+      "opening_hours": "06:00-18:00",
+      "fee": "50 THB",
+      "phone": null,
+      "website": null
+    },
+    "images": [
+      {
+        "url": "https://example.com/doisuthep_main.jpg",
+        "is_main": true
+      }
+    ]
+  }
+]

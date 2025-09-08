@@ -19,3 +19,4 @@ uploads/videos/*.mkv
 painaidee_colab.db
 fresh_venv/
 agent_venv/
+ci_venv/

@@ -5,12 +5,22 @@ from src.models import db
 from src.models.external_data import DataSource, ManualUpdate, ScheduledUpdate
 
 
+# Import the Base from the new Alembic-compatible setup
+from app.db.session import Base
+
+
 @pytest.fixture
 def app():
     app = create_app('testing')
     with app.app_context():
+        # Create tables from both metadata objects
         db.create_all()
+        Base.metadata.create_all(bind=db.engine)
+
         yield app
+
+        # Drop tables in reverse order of creation
+        Base.metadata.drop_all(bind=db.engine)
         db.drop_all()
 
 
