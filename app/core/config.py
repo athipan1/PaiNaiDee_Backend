@@ -54,9 +54,18 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
+        origins = []
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
+            origins = [origin.strip() for origin in v.split(",")]
+        elif isinstance(v, list):
+            origins = v
+
+        # Ensure the required Vercel domain is always present for the frontend
+        required_origin = "https://pai-naidee-ui-spark.vercel.app"
+        if required_origin not in origins:
+            origins.append(required_origin)
+
+        return origins
     
     # Pydantic v2 configuration
     model_config = SettingsConfigDict(
