@@ -29,7 +29,7 @@ def search_attractions():
     try:
         # รองรับทั้ง GET และ POST
         if request.method == "POST":
-            data = request.get_json() or {}
+            data = request.get_json(silent=True) or {}
         else:
             data = request.args.to_dict()
         
