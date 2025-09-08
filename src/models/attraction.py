@@ -1,6 +1,6 @@
 from . import db
 from .json_encoded_dict import JSONEncodedDict
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 
 class Attraction(db.Model):
@@ -19,7 +19,9 @@ class Attraction(db.Model):
     contact_phone = db.Column(db.String(100))
     website = db.Column(db.String(255))
     main_image_url = db.Column(db.String(255))
-    image_urls = db.Column(JSONEncodedDict, nullable=True)
+    image_urls = db.Column(
+        JSONEncodedDict, nullable=False, default=dict, server_default=text("'{}'")
+    )
 
     rooms = db.relationship("Room", backref="attraction", lazy=True)
     cars = db.relationship("Car", backref="attraction", lazy=True)
