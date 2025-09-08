@@ -125,6 +125,11 @@ This implementation focuses on:
     async def health_check():
         """Simple health check endpoint"""
         return {"status": "ok", "message": "Backend is running"}
+
+    @app.get("/api/health", tags=["health"])
+    async def api_health_check():
+        """Simple health check endpoint for API gateway"""
+        return {"status": "ok", "message": "API is running"}
     
     return app
 
