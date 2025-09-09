@@ -6,6 +6,30 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.exceptions import AppException
 from app.core.logging import logger
 
+async def handle_value_error(request: Request, exc: ValueError):
+    """Handler for ValueErrors, which can indicate not found or bad input."""
+    logger.log_event("validation.error", {"error": str(exc)})
+    # Check for "not found" messages to return a 404
+    if "not found" in str(exc).lower():
+        status_code = 404
+        error_type = "NotFound"
+    else:
+        status_code = 400
+        error_type = "InvalidInput"
+
+    return JSONResponse(
+        status_code=status_code,
+        content={"error": error_type, "message": str(exc)},
+    )
+
+async def handle_permission_error(request: Request, exc: PermissionError):
+    """Handler for PermissionErrors."""
+    logger.log_event("permission.denied", {"error": str(exc)})
+    return JSONResponse(
+        status_code=403,
+        content={"error": "PermissionDenied", "message": str(exc)},
+    )
+
 async def handle_app_exception(request: Request, exc: AppException):
     """Handler for custom application exceptions."""
     logger.log_event("app.exception", {"error": exc.error_code, "detail": exc.message})
@@ -68,6 +92,8 @@ async def handle_generic_exception(request: Request, exc: Exception):
 
 def register_exception_handlers(app):
     """Register all exception handlers for the FastAPI app."""
+    app.add_exception_handler(ValueError, handle_value_error)
+    app.add_exception_handler(PermissionError, handle_permission_error)
     app.add_exception_handler(AppException, handle_app_exception)
     app.add_exception_handler(HTTPException, handle_http_exception)
     app.add_exception_handler(StarletteHTTPException, handle_starlette_http_exception)

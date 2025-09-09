@@ -17,3 +17,8 @@ class InvalidInputException(AppException):
     """Invalid input exception."""
     def __init__(self, message: str = "Invalid input provided"):
         super().__init__(message, status_code=400, error_code="INVALID_INPUT")
+
+class PermissionDeniedException(AppException):
+    """Permission denied exception."""
+    def __init__(self, message: str = "Permission denied"):
+        super().__init__(message, status_code=403, error_code="PERMISSION_DENIED")

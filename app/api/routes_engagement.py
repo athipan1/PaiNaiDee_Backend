@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
@@ -10,6 +10,7 @@ from app.schemas.engagement import (
 )
 from app.auth.security import get_current_user, get_optional_current_user
 from src.models import User
+from app.core.exceptions import NotFoundException, InvalidInputException, PermissionDeniedException
 
 router = APIRouter(prefix="/api", tags=["engagement"])
 
@@ -32,18 +33,13 @@ async def like_post(
     - Updates the post's like count automatically
     - Returns the updated like count
     """
-    try:
-        result = await engagement_service.like_post(post_id, str(current_user.id), db)
-        if not result.success:
-            if "not found" in result.message:
-                raise HTTPException(status_code=404, detail=result.message)
-            else:
-                raise HTTPException(status_code=400, detail=result.message)
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to like post: {str(e)}")
+    result = await engagement_service.like_post(post_id, str(current_user.id), db)
+    if not result.success:
+        if "not found" in result.message:
+            raise NotFoundException(message=result.message)
+        else:
+            raise InvalidInputException(message=result.message)
+    return result
 
 
 @router.post("/posts/{post_id}/comments", response_model=PostCommentResponse)
@@ -66,18 +62,10 @@ async def create_comment(
     - Automatically updates the post's comment count
     - Returns the created comment with timestamp
     """
-    try:
-        # Create the full comment data with post_id from URL
-        comment_data = PostCommentCreate(post_id=post_id, content=comment_request.content)
-        result = await engagement_service.comment_on_post(comment_data, str(current_user.id), db)
-        return result
-    except ValueError as e:
-        if "not found" in str(e):
-            raise HTTPException(status_code=404, detail=str(e))
-        else:
-            raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create comment: {str(e)}")
+    # Create the full comment data with post_id from URL
+    comment_data = PostCommentCreate(post_id=post_id, content=comment_request.content)
+    result = await engagement_service.comment_on_post(comment_data, str(current_user.id), db)
+    return result
 
 
 @router.put("/comments/{comment_id}", response_model=PostCommentResponse)
@@ -100,18 +88,8 @@ async def update_comment(
     - Only the comment author can update their comment
     - Returns the updated comment with new timestamp
     """
-    try:
-        result = await engagement_service.update_comment(comment_id, comment_data, str(current_user.id), db)
-        return result
-    except ValueError as e:
-        if "not found" in str(e):
-            raise HTTPException(status_code=404, detail=str(e))
-        else:
-            raise HTTPException(status_code=400, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update comment: {str(e)}")
+    result = await engagement_service.update_comment(comment_id, comment_data, str(current_user.id), db)
+    return result
 
 
 @router.delete("/comments/{comment_id}", response_model=EngagementActionResponse)
@@ -131,20 +109,15 @@ async def delete_comment(
     - Automatically updates the post's comment count
     - Returns the updated comment count
     """
-    try:
-        result = await engagement_service.delete_comment(comment_id, str(current_user.id), db)
-        if not result.success:
-            if "not found" in result.message:
-                raise HTTPException(status_code=404, detail=result.message)
-            elif "only delete your own" in result.message:
-                raise HTTPException(status_code=403, detail=result.message)
-            else:
-                raise HTTPException(status_code=400, detail=result.message)
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete comment: {str(e)}")
+    result = await engagement_service.delete_comment(comment_id, str(current_user.id), db)
+    if not result.success:
+        if "not found" in result.message:
+            raise NotFoundException(message=result.message)
+        elif "only delete your own" in result.message:
+            raise PermissionDeniedException(message=result.message)
+        else:
+            raise InvalidInputException(message=result.message)
+    return result
 
 
 @router.get("/posts/{post_id}/engagement", response_model=PostEngagementResponse)
@@ -168,15 +141,10 @@ async def get_post_engagement(
     - Indicates if current user has liked the post (if authenticated)
     - Includes recent comments with timestamps
     """
-    try:
-        current_user_id = str(current_user.id) if current_user else None
-        result = await engagement_service.get_post_engagement(
-            post_id, current_user_id, db, limit_comments
-        )
-        if not result:
-            raise HTTPException(status_code=404, detail="Post not found")
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get engagement data: {str(e)}")
+    current_user_id = str(current_user.id) if current_user else None
+    result = await engagement_service.get_post_engagement(
+        post_id, current_user_id, db, limit_comments
+    )
+    if not result:
+        raise NotFoundException(message="Post not found")
+    return result
