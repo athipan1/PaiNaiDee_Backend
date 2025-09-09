@@ -11,7 +11,7 @@ from datetime import datetime
 @pytest.fixture
 def client():
     """Create a test client for FastAPI"""
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 404
         data = response.json()
-        assert "Post not found" in data["detail"]
+        assert "Post not found" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.like_post')
     def test_like_post_invalid_id(self, mock_like_post, client):
@@ -110,7 +110,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 400
         data = response.json()
-        assert "Invalid post ID format" in data["detail"]
+        assert "Invalid post ID format" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.comment_on_post')
     def test_create_comment_success(self, mock_comment_on_post, client, mock_comment_response):
@@ -140,7 +140,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 404
         data = response.json()
-        assert "Post not found" in data["detail"]
+        assert "Post not found" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.update_comment')
     def test_update_comment_success(self, mock_update_comment, client, mock_comment_response):
@@ -169,7 +169,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 403
         data = response.json()
-        assert "only edit your own comments" in data["detail"]
+        assert "only edit your own comments" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.delete_comment')
     def test_delete_comment_success(self, mock_delete_comment, client):
@@ -200,7 +200,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 403
         data = response.json()
-        assert "only delete your own comments" in data["detail"]
+        assert "only delete your own comments" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.get_post_engagement')
     def test_get_post_engagement_success(self, mock_get_engagement, client, mock_post_engagement_response):
@@ -237,7 +237,7 @@ class TestEngagementAPI:
         
         assert response.status_code == 404
         data = response.json()
-        assert "Post not found" in data["detail"]
+        assert "Post not found" in data["message"]
 
     @patch('app.services.engagement_service.engagement_service.like_post')
     def test_like_post_service_error(self, mock_like_post, client):
@@ -248,4 +248,5 @@ class TestEngagementAPI:
         
         assert response.status_code == 500
         data = response.json()
-        assert "Failed to like post" in data["detail"]
+        assert data["error"] == "InternalServerError"
+        assert data["message"] == "An unexpected internal error occurred."

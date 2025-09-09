@@ -9,7 +9,7 @@ from datetime import datetime
 @pytest.fixture
 def client():
     """Create a test client for FastAPI"""
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture
@@ -111,7 +111,7 @@ class TestPostsAPI:
         
         assert response.status_code == 404
         data = response.json()
-        assert "Post not found" in data["detail"]
+        assert "Post not found" in data["message"]
 
     @patch('app.services.post_service.post_service.get_posts')
     def test_get_posts_service_error(self, mock_get_posts, client):
@@ -122,7 +122,8 @@ class TestPostsAPI:
         
         assert response.status_code == 500
         data = response.json()
-        assert "Failed to retrieve posts" in data["detail"]
+        assert data["error"] == "InternalServerError"
+        assert data["message"] == "An unexpected internal error occurred."
 
     @patch('app.services.post_service.post_service.get_post_by_id')
     def test_get_post_by_id_service_error(self, mock_get_post, client):
@@ -133,4 +134,5 @@ class TestPostsAPI:
         
         assert response.status_code == 500
         data = response.json()
-        assert "Failed to retrieve post" in data["detail"]
+        assert data["error"] == "InternalServerError"
+        assert data["message"] == "An unexpected internal error occurred."

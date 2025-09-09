@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.db.session import init_db
 from app.api import routes_search, routes_locations, routes_posts, routes_engagement
+from app.api.error_handlers import register_exception_handlers
 
 
 @asynccontextmanager
@@ -94,6 +95,9 @@ This implementation focuses on:
     app.include_router(routes_locations.router)
     app.include_router(routes_posts.router)
     app.include_router(routes_engagement.router)
+
+    # Register exception handlers
+    register_exception_handlers(app)
     
     @app.get("/", tags=["health"])
     async def root():
