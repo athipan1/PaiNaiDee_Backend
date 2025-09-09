@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from app.db.session import get_async_db
 from app.services.search_service import search_service
@@ -28,13 +27,10 @@ async def search_posts(
     - `{"q": "ทะเล"}` - Searches for sea/beach related content
     - `{"q": "ภูเขา"}` - Searches for mountain/hill related content
     """
-    try:
-        result = await search_service.search_posts(
-            query=request.q,
-            limit=request.limit,
-            offset=request.offset,
-            db=db
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+    result = await search_service.search_posts(
+        query=request.q,
+        limit=request.limit,
+        offset=request.offset,
+        db=db
+    )
+    return result
