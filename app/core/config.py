@@ -48,24 +48,32 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: List[str] = Field(
-        default="http://localhost:3000,https://pai-naidee-ui-spark.vercel.app",
+        default=["http://localhost:3000", "http://127.0.0.1:3000"],
         env="CORS_ORIGINS"
     )
 
     @field_validator("cors_origins", mode="before")
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
-        origins = []
+        """
+        Prepares the list of CORS origins, ensuring required domains for the frontend are always included.
+        Handles both a comma-separated string from environment variables and a list from default values.
+        """
         if isinstance(v, str):
-            origins = [origin.strip() for origin in v.split(",")]
-        elif isinstance(v, list):
-            origins = v
+            # Origins from environment variable as a comma-separated string
+            origins = {origin.strip() for origin in v.split(",") if origin.strip()}
+        else:
+            # Origins from the default list
+            origins = set(v)
 
-        # Ensure the required Vercel domain is always present for the frontend
-        required_origin = "https://pai-naidee-ui-spark.vercel.app"
-        if required_origin not in origins:
-            origins.append(required_origin)
+        # Ensure required origins for Vercel frontend and local development are always present
+        required_origins = {
+            "https://pai-naidee-ui-spark.vercel.app",
+            "http://localhost:3000",
+        }
 
-        return origins
+        origins.update(required_origins)
+
+        return sorted(list(origins))
     
     # Pydantic v2 configuration
     model_config = SettingsConfigDict(
