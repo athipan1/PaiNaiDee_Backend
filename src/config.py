@@ -8,6 +8,12 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max file size
+    CORS_ORIGINS = [
+        "http://127.0.0.1:3000",  # Local development
+        "http://localhost:3000",  # Local development
+        "https://pai-naidee-ui-spark.vercel.app",  # Vercel frontend
+        "https://athipan01-painaidee-backend.hf.space",  # Hugging Face Space
+    ]
 
 
 class DevelopmentConfig(Config):
