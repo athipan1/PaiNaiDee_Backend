@@ -34,23 +34,14 @@ def create_app(config_name):
 
     db.init_app(app)
 
-    # Define allowed origins for CORS
-    allowed_origins = [
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
-        "https://pai-naidee-ui-spark.vercel.app",
-        "https://athipan01-painaidee-backend.hf.space",
-    ]
-
     CORS(app, resources={
         r"/api/*": {
-            "origins": allowed_origins,
+            "origins": app.config.get("CORS_ORIGINS", []),
             "methods": ["*"],
             "allow_headers": ["*"]
         }
     })
 
-    print("🚀 CORS origins allowed:", allowed_origins)
     jwt = JWTManager(app)
 
     @jwt.user_lookup_loader
