@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.config import config
@@ -66,9 +66,30 @@ def create_app(config_name):
     # analytics_middleware = APIAnalyticsMiddleware()
     # analytics_middleware.init_app(app)
 
-    @app.route("/")
-    def home():
-        return standardized_response(message="Welcome to Pai Nai Dii Backend!")
+    if config_name != "testing":
+        # Serve React App
+        build_dir = os.path.join(os.path.dirname(app.root_path), 'frontend', 'build')
+
+        # Serve static files from the 'static' directory within 'build_dir'
+        @app.route('/static/<path:filename>')
+        def serve_static(filename):
+            return send_from_directory(os.path.join(build_dir, 'static'), filename)
+
+        # Serve the index.html for all other routes that are not API routes
+        @app.route('/', defaults={'path': ''})
+        @app.route('/<path:path>')
+        def serve_react_app(path):
+            if path != "" and os.path.exists(os.path.join(build_dir, path)):
+                return send_from_directory(build_dir, path)
+
+            index_path = os.path.join(build_dir, 'index.html')
+            if not os.path.exists(index_path):
+                return standardized_response(message="React build not found. Run 'npm run build' in the frontend directory.")
+            return send_from_directory(build_dir, 'index.html')
+    else:
+        @app.route("/")
+        def home():
+            return standardized_response(message="Welcome to Pai Nai Dii Backend!")
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
