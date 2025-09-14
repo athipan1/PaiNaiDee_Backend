@@ -1,3 +1,34 @@
+# Backend Phase 1 Notes (สำคัญ)
+
+## หลีกเลี่ยงการปะปนสคีมา Flask (Integer) กับ FastAPI (UUID)
+
+Phase 1 ใช้สคีมาแบบ UUID ทั้งหมดในตาราง `locations`, `posts`, `post_media` ฯลฯ
+ห้ามใช้สคริปต์ seeding/initialization เดิมของฝั่ง Flask (เช่น `src/...`, `db.create_all()`) เพราะจะสร้างตาราง `posts` แบบ `INTEGER` แล้วทำให้ FK ใน `post_media.post_id` (ที่เป็น `UUID`) ผูกกับ `posts.id` ไม่ได้
+
+## ขั้นตอนที่ถูกต้อง (PostgreSQL)
+
+1) อัปเกรดสคีมาด้วย Alembic:
+```bash
+alembic upgrade head
+```
+
+2) Seed ข้อมูลตัวอย่างสำหรับ Phase 1 (UUID):
+```bash
+python seed_db.py
+```
+
+3) รันแอป FastAPI:
+```bash
+python run_fastapi.py
+```
+
+> หมายเหตุ:
+> - หากคุณเคยรันสคริปต์ seeding เดิม (ฝั่ง Flask) มาก่อน อาจต้องล้างตารางที่เกี่ยวข้องก่อนใช้งาน Phase 1
+> - สคริปต์ `seed_db.py` ที่ปรับปรุงแล้วใน Phase 1 จะทำงานกับโมเดล `app/db/models.py` เท่านั้น
+> - หลีกเลี่ยงการเรียก `Base.metadata.create_all()` แบบปะปนจากหลายที่พร้อมกัน ให้ใช้ Alembic จัดการสคีมาเป็นหลัก
+
+---
+
 # PaiNaiDee Backend API - Phase 1
 
 ## Contextual Travel Content Search API Overview
