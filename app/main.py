@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 
 from app.core.config import settings
 from app.core.logging import logger
-from app.db.session import init_db
+from app.db.session import init_db, get_async_db
 from app.api import routes_search, routes_locations, routes_posts, routes_engagement
 from app.api.error_handlers import register_exception_handlers
 
@@ -127,8 +128,32 @@ This implementation focuses on:
     
     @app.get("/health", tags=["health"])
     async def health_check():
-        """Simple health check endpoint"""
-        return {"status": "ok", "message": "Backend is running"}
+        """Enhanced health check endpoint with version and db status"""
+        import time
+        start_time = time.time()
+        
+        db_status = "ok"
+        try:
+            # Quick database connectivity check
+            from app.db.session import AsyncSessionLocal
+            async with AsyncSessionLocal() as session:
+                result = await session.execute("SELECT 1")
+                await session.commit()
+        except Exception as e:
+            db_status = f"error: {str(e)[:100]}"
+        
+        response_time = round((time.time() - start_time) * 1000, 2)
+        
+        return {
+            "status": "ok" if db_status == "ok" else "degraded",
+            "app_version": settings.version,
+            "timestamp": time.time(),
+            "checks": {
+                "database": db_status,
+                "response_time_ms": response_time
+            },
+            "message": "PaiNaiDee Backend API is running"
+        }
 
     @app.get("/api/health", tags=["health"])
     async def api_health_check():

@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from app.core.config import settings
 from app.db.session import get_async_db
@@ -9,6 +10,23 @@ from src.models import User  # Assuming FastAPI can access Flask's models
 
 # Reusable security scheme
 token_auth_scheme = HTTPBearer()
+
+def verify_api_key(api_key: str) -> bool:
+    """
+    Verify if the provided API key is valid.
+    
+    In a real implementation, this would check against a database
+    or external service. For now, we use environment variables.
+    """
+    # Get valid API keys from settings (comma-separated)
+    valid_keys = getattr(settings, 'api_keys', '').split(',')
+    valid_keys = [key.strip() for key in valid_keys if key.strip()]
+    
+    # Add some default keys for demo purposes if none configured
+    if not valid_keys:
+        valid_keys = ['demo-api-key', 'test-key-123', 'painaidee-dev-key']
+    
+    return api_key in valid_keys
 
 async def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),
@@ -73,7 +91,7 @@ async def get_current_user(
 
 
 async def get_optional_current_user(
-    token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),
+    token: Optional[HTTPAuthorizationCredentials] = Depends(token_auth_scheme),
     db: AsyncSession = Depends(get_async_db)
 ) -> User | None:
     """

@@ -5,14 +5,52 @@ from typing import Optional
 from app.db.session import get_async_db
 from app.services.location_service import location_service
 from app.schemas.locations import (
-    LocationDetailResponse, NearbyLocationResponse, AutocompleteLocationResponse
+    LocationDetailResponse, NearbyLocationResponse, AutocompleteLocationResponse,
+    LocationListResponse
 )
 from app.schemas.search import NearbyRequest
 
-router = APIRouter(prefix="/api/locations", tags=["locations"])
+router = APIRouter(prefix="/api", tags=["locations"])
 
 
-@router.get("/{location_id}", response_model=LocationDetailResponse)
+@router.get("/locations", response_model=LocationListResponse)
+async def get_locations(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Number of locations per page"),
+    province: Optional[str] = Query(None, description="Filter by province"),
+    lat: Optional[float] = Query(None, description="Latitude for distance filtering"),
+    lon: Optional[float] = Query(None, description="Longitude for distance filtering"),
+    radius_km: Optional[float] = Query(None, description="Search radius in kilometers", ge=0.1, le=500.0),
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    Get all locations with pagination and optional filtering.
+    
+    **Query Parameters:**
+    - `page`: Page number (starting from 1)
+    - `page_size`: Number of locations per page (1-100)
+    - `province`: Filter by province name
+    - `lat`, `lon`, `radius_km`: Geographic filtering
+    
+    **Features:**
+    - Pagination with metadata (total count, total pages, etc.)
+    - Geographic filtering when coordinates provided
+    - Province-based filtering
+    - Results ordered by popularity score
+    """
+    result = await location_service.get_locations(
+        page=page,
+        page_size=page_size,
+        province=province,
+        lat=lat,
+        lon=lon,
+        radius_km=radius_km,
+        db=db
+    )
+    return result
+
+
+@router.get("/locations/{location_id}", response_model=LocationDetailResponse)
 async def get_location(
     location_id: str = Path(..., description="Location ID (UUID)"),
     db: AsyncSession = Depends(get_async_db)
@@ -31,7 +69,7 @@ async def get_location(
     return location
 
 
-@router.get("/{location_id}/nearby", response_model=NearbyLocationResponse)
+@router.get("/locations/{location_id}/nearby", response_model=NearbyLocationResponse)
 async def get_nearby_locations(
     location_id: str = Path(..., description="Location ID (UUID)"),
     radius_km: float = Query(default=10.0, ge=0.1, le=100.0, description="Search radius in kilometers"),
@@ -55,7 +93,7 @@ async def get_nearby_locations(
     return nearby
 
 
-@router.get("/autocomplete", response_model=AutocompleteLocationResponse)
+@router.get("/locations/autocomplete", response_model=AutocompleteLocationResponse)
 async def autocomplete_locations(
     q: str = Query(..., description="Search query for autocomplete", min_length=1),
     limit: int = Query(default=10, ge=1, le=50, description="Maximum number of suggestions"),

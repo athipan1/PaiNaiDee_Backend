@@ -6,8 +6,12 @@ from datetime import datetime
 class SearchRequest(BaseModel):
     """Search request schema"""
     q: str = Field(..., min_length=1, max_length=500, description="Search query")
+    lat: Optional[float] = Field(None, description="Latitude for distance-based sorting")
+    lon: Optional[float] = Field(None, description="Longitude for distance-based sorting")
+    radius_km: Optional[float] = Field(50.0, description="Search radius in kilometers", ge=0.1, le=500.0)
     limit: int = Field(default=20, ge=1, le=100, description="Number of results to return")
     offset: int = Field(default=0, ge=0, description="Offset for pagination")
+    sort: Optional[str] = Field("relevance", description="Sort order: relevance, distance, popularity, newest")
 
 
 class MediaResponse(BaseModel):
@@ -36,6 +40,7 @@ class PostResponse(BaseModel):
     comment_count: int = Field(..., description="Number of comments")
     created_at: datetime = Field(..., description="Creation timestamp")
     score: float = Field(..., description="Relevance score")
+    distance_km: Optional[float] = Field(None, description="Distance from query point in kilometers")
 
 
 class SuggestionResponse(BaseModel):

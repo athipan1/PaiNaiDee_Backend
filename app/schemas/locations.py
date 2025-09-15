@@ -25,6 +25,17 @@ class LocationResponse(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
 
 
+class LocationListResponse(BaseModel):
+    """Schema for paginated location list response"""
+    locations: List[LocationResponse] = Field(..., description="List of locations")
+    total_count: int = Field(..., description="Total number of locations")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of items per page")
+    total_pages: int = Field(..., description="Total number of pages")
+    has_next: bool = Field(..., description="Whether there is a next page")
+    has_prev: bool = Field(..., description="Whether there is a previous page")
+
+
 class LocationDetailResponse(LocationResponse):
     """Schema for detailed location response"""
     posts_count: int = Field(..., description="Number of associated posts")

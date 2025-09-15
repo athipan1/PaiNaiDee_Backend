@@ -69,6 +69,29 @@ def upgrade() -> None:
         sa.CheckConstraint("media_type IN ('image', 'video')", name='check_media_type')
     )
     
+    # Create post_likes table
+    op.create_table(
+        'post_likes',
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text('uuid_generate_v4()')),
+        sa.Column('post_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', sa.Text(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ondelete='CASCADE'),
+        sa.UniqueConstraint('post_id', 'user_id', name='unique_post_user_like')
+    )
+    
+    # Create post_comments table
+    op.create_table(
+        'post_comments',
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text('uuid_generate_v4()')),
+        sa.Column('post_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', sa.Text(), nullable=False),
+        sa.Column('content', sa.Text(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ondelete='CASCADE')
+    )
+    
     # Create indexes for performance
     # Trigram index for fuzzy search on location names
     op.execute('CREATE INDEX idx_locations_name_trgm ON locations USING gin (name gin_trgm_ops);')
@@ -83,6 +106,11 @@ def upgrade() -> None:
     op.create_index('idx_posts_like_count', 'posts', ['like_count'])
     op.create_index('idx_posts_user_id', 'posts', ['user_id'])
     op.create_index('idx_post_media_post_id', 'post_media', ['post_id'])
+    op.create_index('idx_post_likes_post_id', 'post_likes', ['post_id'])
+    op.create_index('idx_post_likes_user_id', 'post_likes', ['user_id'])
+    op.create_index('idx_post_comments_post_id', 'post_comments', ['post_id'])
+    op.create_index('idx_post_comments_user_id', 'post_comments', ['user_id'])
+    op.create_index('idx_post_comments_created_at', 'post_comments', ['created_at'])
     
     # Geographic indexes if PostGIS is available
     try:
@@ -96,6 +124,8 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Drop tables in reverse order
+    op.drop_table('post_comments')
+    op.drop_table('post_likes')
     op.drop_table('post_media')
     op.drop_table('posts')
     op.drop_table('locations')

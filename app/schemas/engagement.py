@@ -42,6 +42,17 @@ class PostCommentResponse(BaseModel):
     updated_at: datetime = Field(..., description="Last update timestamp")
 
 
+class PostCommentsResponse(BaseModel):
+    """Schema for paginated post comments response"""
+    comments: List[PostCommentResponse] = Field(..., description="List of comments")
+    total_count: int = Field(..., description="Total number of comments")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of comments per page")
+    total_pages: int = Field(..., description="Total number of pages")
+    has_next: bool = Field(..., description="Whether there is a next page")
+    has_prev: bool = Field(..., description="Whether there is a previous page")
+
+
 class PostEngagementResponse(BaseModel):
     """Schema for post engagement summary"""
     post_id: str = Field(..., description="Post ID")
