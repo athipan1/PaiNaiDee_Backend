@@ -277,6 +277,79 @@ class EngagementService:
             comment_count=post.comment_count if post else None
         )
     
+    async def get_post_comments(
+        self,
+        post_id: str,
+        page: int = 1,
+        page_size: int = 10,
+        db: AsyncSession = None
+    ) -> Optional[dict]:
+        """
+        Get paginated comments for a post
+        
+        Args:
+            post_id: Post UUID
+            page: Page number (1-based)
+            page_size: Number of comments per page
+            db: Database session
+            
+        Returns:
+            PostCommentsResponse data or None if post not found
+        """
+        try:
+            post_uuid = uuid.UUID(post_id)
+        except ValueError:
+            return None
+        
+        # Check if post exists
+        post_query = select(Post).where(Post.id == post_uuid)
+        post_result = await db.execute(post_query)
+        post = post_result.scalar_one_or_none()
+        
+        if not post:
+            return None
+        
+        # Get total count for pagination
+        count_query = select(func.count(PostComment.id)).where(PostComment.post_id == post_uuid)
+        total_count_result = await db.execute(count_query)
+        total_count = total_count_result.scalar() or 0
+        
+        # Calculate pagination
+        total_pages = (total_count + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Get comments with pagination (newest first)
+        comments_query = select(PostComment).where(
+            PostComment.post_id == post_uuid
+        ).order_by(
+            PostComment.created_at.desc()
+        ).offset(offset).limit(page_size)
+        
+        comments_result = await db.execute(comments_query)
+        comments = comments_result.scalars().all()
+        
+        # Convert to response format
+        comment_responses = []
+        for comment in comments:
+            comment_responses.append(PostCommentResponse(
+                id=str(comment.id),
+                post_id=str(comment.post_id),
+                user_id=comment.user_id,
+                content=comment.content,
+                created_at=comment.created_at,
+                updated_at=comment.updated_at
+            ))
+        
+        return {
+            "comments": comment_responses,
+            "total_count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+    
     async def get_post_engagement(
         self,
         post_id: str,

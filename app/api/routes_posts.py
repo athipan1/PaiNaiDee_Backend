@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, File, UploadFile, Query
+from fastapi import APIRouter, Depends, Form, File, UploadFile, Query, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 import json
@@ -6,7 +6,7 @@ import json
 from app.db.session import get_async_db
 from app.services.post_service import post_service
 from app.schemas.posts import PostCreate, PostUploadResponse, PostMediaCreate, PostListResponse, PostResponse
-from app.auth.security import get_current_user
+from app.auth.security import get_current_user, get_optional_current_user, verify_api_key
 from src.models import User
 from app.core.exceptions import InvalidInputException, NotFoundException
 
@@ -22,10 +22,16 @@ async def create_post(
     lng: Optional[float] = Form(None, description="Longitude"),
     media_files: List[UploadFile] = File(..., description="Media files (images/videos)"),
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user)
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    x_actor_id: Optional[str] = Header(None, alias="X-Actor-Id"),
+    current_user: Optional[User] = Depends(get_optional_current_user)
 ):
     """
     Create a new post with media uploads.
+    
+    **Authentication:**
+    - Requires either valid JWT token or API key in X-API-Key header
+    - If using API key, provide X-Actor-Id header for user identification
     
     **Multipart form data with:**
     - `caption`: Optional post caption (max 2000 chars)
@@ -44,6 +50,16 @@ async def create_post(
     If coordinates are provided, the system automatically finds
     the nearest location within 5km radius and associates it with the post.
     """
+    # Get actor ID from user or header
+    if current_user:
+        actor_id = str(current_user.id)
+    elif x_api_key and verify_api_key(x_api_key):
+        if not x_actor_id:
+            raise InvalidInputException(message="X-Actor-Id header required when using API key")
+        actor_id = x_actor_id
+    else:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="Authentication required")
     # Parse tags from JSON string
     parsed_tags = []
     if tags:
@@ -69,8 +85,8 @@ async def create_post(
         # TODO: Upload to cloud storage (S3, GCS, etc.)
         # For now, create dummy URLs
         media_type = "image" if file.content_type.startswith('image/') else "video"
-        fake_url = f"https://storage.example.com/posts/{current_user.id}/{file.filename}"
-        fake_thumb_url = f"https://storage.example.com/posts/{current_user.id}/thumb_{file.filename}" if media_type == "video" else None
+        fake_url = f"https://storage.example.com/posts/{actor_id}/{file.filename}"
+        fake_thumb_url = f"https://storage.example.com/posts/{actor_id}/thumb_{file.filename}" if media_type == "video" else None
         
         media_list.append(PostMediaCreate(
             media_type=media_type,
@@ -93,7 +109,7 @@ async def create_post(
     )
 
     # Create post
-    result = await post_service.create_post(post_data, str(current_user.id), db)
+    result = await post_service.create_post(post_data, actor_id, db)
     return result
 
 

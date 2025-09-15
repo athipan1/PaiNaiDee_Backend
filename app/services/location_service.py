@@ -62,6 +62,94 @@ class LocationService:
             nearby_locations=[]  # Will be populated by get_nearby_locations
         )
     
+    async def get_locations(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        province: Optional[str] = None,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        radius_km: Optional[float] = None,
+        db: AsyncSession = None
+    ) -> dict:
+        """
+        Get paginated list of locations with optional filtering
+        
+        Args:
+            page: Page number (1-based)
+            page_size: Number of items per page
+            province: Filter by province
+            lat: Latitude for distance filtering
+            lon: Longitude for distance filtering  
+            radius_km: Maximum distance in kilometers
+            db: Database session
+            
+        Returns:
+            LocationListResponse data
+        """
+        # Build base query
+        query = select(Location)
+        
+        # Add province filter
+        if province:
+            query = query.where(Location.province.ilike(f"%{province}%"))
+        
+        # Add geographic filter if coordinates provided
+        if lat is not None and lon is not None and radius_km:
+            # Use Haversine formula for distance filtering
+            distance_filter = text(f"""
+                (6371 * acos(cos(radians({lat})) * cos(radians(lat)) * 
+                cos(radians(lng) - radians({lon})) + sin(radians({lat})) * 
+                sin(radians(lat)))) <= {radius_km}
+            """)
+            query = query.where(distance_filter)
+        
+        # Get total count for pagination
+        count_query = select(func.count(Location.id))
+        if province:
+            count_query = count_query.where(Location.province.ilike(f"%{province}%"))
+        if lat is not None and lon is not None and radius_km:
+            count_query = count_query.where(distance_filter)
+        
+        total_count_result = await db.execute(count_query)
+        total_count = total_count_result.scalar() or 0
+        
+        # Calculate pagination
+        total_pages = (total_count + page_size - 1) // page_size
+        offset = (page - 1) * page_size
+        
+        # Apply pagination and ordering
+        query = query.order_by(Location.popularity_score.desc(), Location.name)
+        query = query.offset(offset).limit(page_size)
+        
+        # Execute query
+        result = await db.execute(query)
+        locations = result.scalars().all()
+        
+        # Convert to response format
+        location_responses = []
+        for location in locations:
+            location_responses.append(LocationResponse(
+                id=str(location.id),
+                name=location.name,
+                province=location.province,
+                aliases=location.aliases or [],
+                lat=location.lat,
+                lng=location.lng,
+                popularity_score=location.popularity_score,
+                created_at=location.created_at
+            ))
+        
+        return {
+            "locations": location_responses,
+            "total_count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+    
     async def get_nearby_locations(
         self,
         location_id: str,
