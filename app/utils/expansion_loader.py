@@ -9,9 +9,9 @@ class ExpansionLoader:
     
     def __init__(self, expansion_file: str = None):
         if expansion_file is None:
-            # Default to seed/keyword_expansion.json relative to project root
+            # Default to data/keyword_mapping.json relative to project root
             project_root = Path(__file__).parent.parent.parent
-            expansion_file = project_root / "seed" / "keyword_expansion.json"
+            expansion_file = project_root / "data" / "keyword_mapping.json"
         
         self.expansion_file = expansion_file
         self._data = None
@@ -24,10 +24,10 @@ class ExpansionLoader:
                 self._data = json.load(f)
         except FileNotFoundError:
             print(f"Warning: Expansion file {self.expansion_file} not found. Using empty data.")
-            self._data = {"provinces": {}, "categories": {}, "synonyms": {}}
+            self._data = {"provinces": {}, "categories": {}, "activities": {}, "synonyms": {}}
         except json.JSONDecodeError as e:
             print(f"Warning: Error parsing expansion file: {e}. Using empty data.")
-            self._data = {"provinces": {}, "categories": {}, "synonyms": {}}
+            self._data = {"provinces": {}, "categories": {}, "activities": {}, "synonyms": {}}
     
     def get_province_landmarks(self, province: str) -> List[str]:
         """
@@ -86,6 +86,11 @@ class ExpansionLoader:
         # Add category terms
         for category, terms in self._data.get("categories", {}).items():
             if query_lower in category.lower() or category.lower() in query_lower:
+                expanded_terms.update(terms)
+        
+        # Add activity terms
+        for activity, terms in self._data.get("activities", {}).items():
+            if query_lower in activity.lower() or activity.lower() in query_lower:
                 expanded_terms.update(terms)
         
         # Add synonyms
