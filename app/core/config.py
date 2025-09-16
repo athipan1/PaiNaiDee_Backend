@@ -73,6 +73,7 @@ class Settings(BaseSettings):
         required_origins = {
             "https://pai-naidee-ui-spark.vercel.app",
             "http://localhost:3000",
+            "https://a75aab886190.ngrok-free.app",      # URL ที่ ngrok สร้างขึ้น
         }
 
         origins.update(required_origins)
