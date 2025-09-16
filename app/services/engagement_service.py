@@ -347,6 +347,59 @@ class EngagementService:
             user_liked=user_liked,
             recent_comments=recent_comments
         )
+    
+    async def get_post_comments(
+        self,
+        post_id: str,
+        db: AsyncSession,
+        limit: int = 20,
+        offset: int = 0
+    ) -> List[PostCommentResponse]:
+        """
+        Get paginated comments for a post
+        
+        Args:
+            post_id: Post UUID
+            limit: Number of comments to return (max 100)
+            offset: Number of comments to skip
+            db: Database session
+            
+        Returns:
+            List[PostCommentResponse]
+        """
+        try:
+            post_uuid = uuid.UUID(post_id)
+        except ValueError:
+            return []
+        
+        # Validate pagination parameters
+        limit = max(1, min(limit, 100))  # Ensure limit is between 1 and 100
+        offset = max(0, offset)
+        
+        # Get comments with pagination
+        comments_query = (
+            select(PostComment)
+            .where(PostComment.post_id == post_uuid)
+            .order_by(desc(PostComment.created_at))
+            .offset(offset)
+            .limit(limit)
+        )
+        comments_result = await db.execute(comments_query)
+        comments = comments_result.scalars().all()
+        
+        # Application-level fallback for timestamps if database defaults fail
+        current_time = datetime.now(timezone.utc)
+        return [
+            PostCommentResponse(
+                id=str(comment.id),
+                post_id=str(comment.post_id),
+                user_id=comment.user_id,
+                content=comment.content,
+                created_at=comment.created_at or current_time,
+                updated_at=comment.updated_at or current_time
+            )
+            for comment in comments
+        ]
 
 
 # Global service instance

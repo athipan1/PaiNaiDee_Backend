@@ -1,21 +1,36 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, ARRAY, Index, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, Index, func, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import expression
 from app.db.session import Base
+
+
+# Database-agnostic array column helper
+def get_array_column(item_type):
+    """Get array column type compatible with current database"""
+    try:
+        from app.core.config import settings
+        if "postgresql" in settings.database_uri:
+            return ARRAY(item_type)
+        else:
+            # Use TEXT for SQLite compatibility  
+            return Text  # Will store as comma-separated string
+    except:
+        # Fallback to TEXT if settings not available during import
+        return Text
 
 
 class Location(Base):
     """Location model for Phase 1"""
     __tablename__ = "locations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(Text, nullable=False)
     province = Column(Text, nullable=True)
-    aliases = Column(ARRAY(Text), default=[])
+    aliases = Column(get_array_column(Text), default="")  # Comma-separated for SQLite
     lat = Column(Float, nullable=True)
     lng = Column(Float, nullable=True)
     popularity_score = Column(Integer, default=0)
@@ -32,11 +47,11 @@ class Post(Base):
     """Post model for Phase 1 (augmented from existing attractions)"""
     __tablename__ = "posts"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Text, nullable=False)  # TODO: Link to user system
     caption = Column(Text, nullable=True)
-    tags = Column(ARRAY(Text), default=[])
-    location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id"), nullable=True)
+    tags = Column(get_array_column(Text), default="")  # Comma-separated for SQLite
+    location_id = Column(String, ForeignKey("locations.id"), nullable=True)
     lat = Column(Float, nullable=True)  # Fallback if PostGIS not available
     lng = Column(Float, nullable=True)  # Fallback if PostGIS not available
     like_count = Column(Integer, default=0)
@@ -56,8 +71,8 @@ class PostMedia(Base):
     """Post media model for Phase 1"""
     __tablename__ = "post_media"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     media_type = Column(String(20), nullable=False)  # 'image' or 'video'
     url = Column(Text, nullable=False)
     thumb_url = Column(Text, nullable=True)
@@ -73,9 +88,15 @@ class PostMedia(Base):
 class PostLike(Base):
     """Post like model for community engagement"""
     __tablename__ = "post_likes"
+    __table_args__ = (
+        Index('idx_post_likes_post_id', 'post_id'),
+        Index('idx_post_likes_user_id', 'user_id'),
+        # Prevent duplicate likes from same user on same post
+        UniqueConstraint('post_id', 'user_id', name='uq_post_likes_post_user'),
+    )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Text, nullable=False)  # TODO: Link to user system
     created_at = Column(DateTime, default=func.now())
 
@@ -90,8 +111,8 @@ class PostComment(Base):
     """Post comment model for community engagement"""
     __tablename__ = "post_comments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    post_id = Column(String, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Text, nullable=False)  # TODO: Link to user system
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=func.now())
@@ -105,15 +126,12 @@ class PostComment(Base):
 
 
 # Indexes for performance
-Index('idx_locations_name_trgm', Location.name, postgresql_using='gin', postgresql_ops={'name': 'gin_trgm_ops'})
-Index('idx_locations_aliases', Location.aliases, postgresql_using='gin')
-Index('idx_posts_tags', Post.tags, postgresql_using='gin')
+# Standard indexes that work on both databases
+Index('idx_locations_name', Location.name)
 Index('idx_posts_location_id', Post.location_id)
 Index('idx_posts_created_at', Post.created_at)
 Index('idx_posts_like_count', Post.like_count)
 Index('idx_post_media_post_id', PostMedia.post_id)
-Index('idx_post_likes_post_id', PostLike.post_id)
-Index('idx_post_likes_user_id', PostLike.user_id)
 Index('idx_post_comments_post_id', PostComment.post_id)
 Index('idx_post_comments_user_id', PostComment.user_id)
 Index('idx_post_comments_created_at', PostComment.created_at)

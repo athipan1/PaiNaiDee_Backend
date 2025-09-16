@@ -1,0 +1,33 @@
+{
+  "provinces": {
+    "เชียงใหม่": ["ดอยสุเทพ", "นิมมาน", "ถนนคนเดิน", "วัดพระสิงห์", "เซ็นทรัลเฟสติวัล", "chiang mai", "chiangmai"],
+    "กรุงเทพฯ": ["วัดพระแก้ว", "เยาวราช", "สยาม", "สุขุมวิท", "ปรีดี", "bangkok", "bkk"],
+    "ภูเก็ต": ["ป่าตอง", "กะตะ", "การอน", "พังงา", "บิ๊กบุดดา", "phuket", "patong"],
+    "เกาะสมุย": ["หาดเฉวง", "หาดละไม", "บ่อผุด", "nathon", "samui", "koh samui"],
+    "ขอนแก่น": ["บึงแก่นนคร", "ศูนย์การค้า", "กันตรลักษ์", "khon kaen", "kkc"],
+    "สุราษฎร์ธานี": ["เกาะเต่า", "เกาะพะงัน", "surathani", "surat thani", "fullmoon party"]
+  },
+  "categories": {
+    "ทะเล": ["sea", "beach", "ชายทะเล", "เกาะ", "island", "หาด", "สระว่ายน้ำ"],
+    "ภูเขา": ["mountain", "hill", "ดอย", "เขา", "ป่า", "forest", "trekking", "hiking"],
+    "วัด": ["temple", "shrine", "monastery", "church", "พระ", "Buddha", "pagoda", "stupa"],
+    "ตลาด": ["market", "bazaar", "shopping", "shop", "เซ็นทรัล", "mall", "plaza"],
+    "ธรรมชาติ": ["nature", "natural", "organic", "park", "garden", "national park", "wildlife"],
+    "อาหาร": ["food", "restaurant", "cafe", "street food", "kitchen", "dining", "local food"]
+  },
+  "activities": {
+    "กิน": ["eat", "food", "restaurant", "cafe", "dining", "ร้านอาหาร", "street food"],
+    "เที่ยว": ["travel", "visit", "tour", "trip", "sightseeing", "explore", "adventure"],
+    "ช้อปปิ้ง": ["shopping", "shop", "buy", "market", "mall", "store", "boutique"],
+    "พักผ่อน": ["relax", "rest", "spa", "massage", "resort", "hotel", "vacation"],
+    "กิจกรรม": ["activity", "event", "festival", "show", "entertainment", "performance"],
+    "ถ่ายรูป": ["photo", "photography", "selfie", "picture", "instagram", "scenic"]
+  },
+  "synonyms": {
+    "บาร์": ["bar", "pub", "nightclub", "club", "lounge"],
+    "คาเฟ่": ["cafe", "coffee", "coffee shop", "coffeehouse"],
+    "โรงแรม": ["hotel", "resort", "accommodation", "stay", "lodge"],
+    "ร้านอาหาร": ["restaurant", "eatery", "dining", "food place"],
+    "ช้อปปิ้ง": ["shopping", "shop", "store", "market", "mall"]
+  }
+}

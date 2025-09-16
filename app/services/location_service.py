@@ -318,6 +318,145 @@ class LocationService:
             query=query,
             total_count=len(suggestions)
         )
+    
+    async def list_locations(
+        self,
+        province: Optional[str] = None,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        radius_km: Optional[float] = 50.0,
+        limit: int = 20,
+        offset: int = 0,
+        db: AsyncSession = None
+    ) -> "LocationListResponse":
+        """
+        List locations with optional filtering and geographic proximity
+        
+        Args:
+            province: Filter by province
+            lat: User latitude for distance calculation
+            lon: User longitude for distance calculation
+            radius_km: Maximum distance from user coordinates
+            limit: Number of results to return
+            offset: Offset for pagination
+            db: Database session
+            
+        Returns:
+            LocationListResponse
+        """
+        from app.schemas.locations import LocationListResponse
+        
+        has_location = lat is not None and lon is not None
+        
+        # Build base query
+        base_query = select(Location)
+        count_query = select(func.count(Location.id))
+        
+        # Add province filter if specified
+        if province:
+            base_query = base_query.where(Location.province == province)
+            count_query = count_query.where(Location.province == province)
+        
+        # Add geographic filter if coordinates provided
+        if has_location and radius_km:
+            from app.core.config import settings
+            if "postgresql" in settings.database_uri:
+                # PostgreSQL with PostGIS or Haversine calculation
+                distance_condition = text(f"""
+                    6371 * ACOS(
+                        COS(RADIANS({lat})) * COS(RADIANS(lat)) * 
+                        COS(RADIANS(lng) - RADIANS({lon})) + 
+                        SIN(RADIANS({lat})) * SIN(RADIANS(lat))
+                    ) <= {radius_km}
+                """)
+                base_query = base_query.where(distance_condition)
+                count_query = count_query.where(distance_condition)
+            else:
+                # Simplified filtering for SQLite (approximate)
+                lat_range = radius_km / 111.0  # Rough degrees per km
+                lon_range = radius_km / (111.0 * abs(float(lat) if lat else 0) * 0.017453293)  # Adjust for latitude
+                
+                base_query = base_query.where(
+                    Location.lat.between(lat - lat_range, lat + lat_range)
+                ).where(
+                    Location.lng.between(lon - lon_range, lon + lon_range)
+                )
+                count_query = count_query.where(
+                    Location.lat.between(lat - lat_range, lat + lat_range)
+                ).where(
+                    Location.lng.between(lon - lon_range, lon + lon_range)
+                )
+        
+        # Get total count
+        total_result = await db.execute(count_query)
+        total_count = total_result.scalar() or 0
+        
+        # Add ordering
+        if has_location:
+            # Order by distance if coordinates provided
+            if "postgresql" in settings.database_uri:
+                distance_calc = text(f"""
+                    6371 * ACOS(
+                        COS(RADIANS({lat})) * COS(RADIANS(lat)) * 
+                        COS(RADIANS(lng) - RADIANS({lon})) + 
+                        SIN(RADIANS({lat})) * SIN(RADIANS(lat))
+                    )
+                """)
+                base_query = base_query.order_by(distance_calc)
+            else:
+                # For SQLite, order by simple distance approximation
+                base_query = base_query.order_by(
+                    ((Location.lat - lat)**2 + (Location.lng - lon)**2)
+                )
+        else:
+            # Order by popularity and name
+            base_query = base_query.order_by(Location.popularity_score.desc(), Location.name)
+        
+        # Add pagination
+        base_query = base_query.offset(offset).limit(limit)
+        
+        # Execute query
+        result = await db.execute(base_query)
+        locations = result.scalars().all()
+        
+        # Get post counts for each location
+        location_responses = []
+        for location in locations:
+            posts_count_query = select(func.count(Post.id)).where(Post.location_id == location.id)
+            posts_count_result = await db.execute(posts_count_query)
+            posts_count = posts_count_result.scalar() or 0
+            
+            # Calculate distance if coordinates provided
+            distance_km = None
+            if has_location and location.lat and location.lng:
+                distance_km = haversine_distance(lat, lon, location.lat, location.lng)
+            
+            location_responses.append(LocationResponse(
+                id=str(location.id),
+                name=location.name,
+                province=location.province,
+                aliases=location.aliases.split(',') if location.aliases else [],
+                lat=location.lat,
+                lng=location.lng,
+                popularity_score=location.popularity_score,
+                created_at=location.created_at,
+                distance_km=distance_km,
+                posts_count=posts_count
+            ))
+        
+        # Build filters info
+        filters = {}
+        if province:
+            filters["province"] = province
+        if has_location:
+            filters["coordinates"] = {"lat": lat, "lon": lon, "radius_km": radius_km}
+        
+        return LocationListResponse(
+            locations=location_responses,
+            total_count=total_count,
+            has_more=(offset + len(location_responses)) < total_count,
+            filters=filters
+        )
 
 
 # Global service instance

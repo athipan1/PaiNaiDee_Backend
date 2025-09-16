@@ -23,6 +23,16 @@ class LocationResponse(BaseModel):
     lng: Optional[float] = Field(None, description="Longitude")
     popularity_score: int = Field(..., description="Popularity score")
     created_at: datetime = Field(..., description="Creation timestamp")
+    distance_km: Optional[float] = Field(None, description="Distance from user location in kilometers")
+    posts_count: Optional[int] = Field(None, description="Number of associated posts")
+
+
+class LocationListResponse(BaseModel):
+    """Schema for location list response"""
+    locations: List[LocationResponse] = Field(..., description="List of locations")
+    total_count: int = Field(..., description="Total number of locations")
+    has_more: bool = Field(..., description="Whether more results are available")
+    filters: dict = Field(default={}, description="Applied filters")
 
 
 class LocationDetailResponse(LocationResponse):

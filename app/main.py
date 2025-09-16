@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
+from datetime import datetime
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -127,13 +128,59 @@ This implementation focuses on:
     
     @app.get("/health", tags=["health"])
     async def health_check():
-        """Simple health check endpoint"""
-        return {"status": "ok", "message": "Backend is running"}
+        """Enhanced health check endpoint with database status"""
+        from sqlalchemy import text
+        from app.db.session import get_async_db
+        
+        health_status = {
+            "status": "ok", 
+            "message": "Backend is running",
+            "app_version": settings.version,
+            "timestamp": datetime.now().isoformat(),
+            "components": {}
+        }
+        
+        # Check database connection
+        try:
+            async for db in get_async_db():
+                result = await db.execute(text("SELECT 1"))
+                result.scalar()
+                health_status["components"]["database"] = {
+                    "status": "ok",
+                    "type": "postgresql" if "postgresql" in settings.database_uri else "sqlite"
+                }
+                break
+        except Exception as e:
+            health_status["status"] = "degraded"
+            health_status["components"]["database"] = {
+                "status": "error",
+                "error": str(e)[:100]  # Limit error message length
+            }
+        
+        # Check extensions (for PostgreSQL)
+        if "postgresql" in settings.database_uri:
+            try:
+                async for db in get_async_db():
+                    pg_trgm_result = await db.execute(text("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm')"))
+                    has_pg_trgm = pg_trgm_result.scalar()
+                    
+                    postgis_result = await db.execute(text("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')"))
+                    has_postgis = postgis_result.scalar()
+                    
+                    health_status["components"]["extensions"] = {
+                        "pg_trgm": "available" if has_pg_trgm else "missing",
+                        "postgis": "available" if has_postgis else "missing"
+                    }
+                    break
+            except Exception:
+                pass  # Extensions check is optional
+        
+        return health_status
 
     @app.get("/api/health", tags=["health"])
     async def api_health_check():
         """Simple health check endpoint for API gateway"""
-        return {"status": "ok", "message": "API is running"}
+        return {"status": "ok", "message": "API is running", "version": settings.version}
     
     return app
 
