@@ -8,8 +8,7 @@ from app.schemas.engagement import (
     PostLikeCreate, PostCommentCreate, PostCommentUpdate, PostCommentCreateRequest,
     PostCommentResponse, PostEngagementResponse, EngagementActionResponse
 )
-from app.auth.security import get_current_user, get_optional_current_user
-from src.models import User
+from app.auth.security import get_current_user, get_optional_current_user, CurrentUser
 from app.core.exceptions import NotFoundException, InvalidInputException, PermissionDeniedException
 
 router = APIRouter(prefix="/api", tags=["engagement"])
@@ -19,13 +18,17 @@ router = APIRouter(prefix="/api", tags=["engagement"])
 async def like_post(
     post_id: str,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser = Depends(get_current_user)
 ):
     """
     Like or unlike a post.
     
     **Path Parameters:**
     - `post_id`: UUID of the post to like/unlike
+    
+    **Authentication:**
+    - API Key: `X-API-Key: demo-api-key` + `X-Actor-Id: user_123` (optional)
+    - JWT: `Authorization: Bearer <token>`
     
     **Features:**
     - If post is not liked, it will be liked
@@ -47,7 +50,7 @@ async def create_comment(
     post_id: str,
     comment_request: PostCommentCreateRequest,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser = Depends(get_current_user)
 ):
     """
     Add a comment to a post.
@@ -73,7 +76,7 @@ async def update_comment(
     comment_id: str,
     comment_data: PostCommentUpdate,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser = Depends(get_current_user)
 ):
     """
     Update a comment (only by the comment author).
@@ -96,7 +99,7 @@ async def update_comment(
 async def delete_comment(
     comment_id: str,
     db: AsyncSession = Depends(get_async_db),
-    current_user: User = Depends(get_current_user)
+    current_user: CurrentUser = Depends(get_current_user)
 ):
     """
     Delete a comment (only by the comment author).
@@ -120,12 +123,38 @@ async def delete_comment(
     return result
 
 
+@router.get("/posts/{post_id}/comments", response_model=list[PostCommentResponse])
+async def get_post_comments(
+    post_id: str,
+    limit: int = 20,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    Get paginated comments for a post.
+    
+    **Path Parameters:**
+    - `post_id`: UUID of the post
+    
+    **Query Parameters:**
+    - `limit`: Number of comments to return (1-100, default: 20)
+    - `offset`: Number of comments to skip (default: 0)
+    
+    **Features:**
+    - Returns comments ordered by creation date (newest first)
+    - Supports pagination for large comment threads
+    - No authentication required for reading comments
+    """
+    comments = await engagement_service.get_post_comments(post_id, db, limit, offset)
+    return comments
+
+
 @router.get("/posts/{post_id}/engagement", response_model=PostEngagementResponse)
 async def get_post_engagement(
     post_id: str,
     limit_comments: int = 5,
     db: AsyncSession = Depends(get_async_db),
-    current_user: Optional[User] = Depends(get_optional_current_user)
+    current_user: Optional[CurrentUser] = Depends(get_optional_current_user)
 ):
     """
     Get engagement data for a post (likes, comments, user's like status).

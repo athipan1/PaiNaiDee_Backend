@@ -1,11 +1,24 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
+
+
+class SortOption(str, Enum):
+    """Search sort options"""
+    relevance = "relevance"
+    distance = "distance"
+    popularity = "popularity"
+    newest = "newest"
 
 
 class SearchRequest(BaseModel):
     """Search request schema"""
     q: str = Field(..., min_length=1, max_length=500, description="Search query")
+    lat: Optional[float] = Field(None, ge=-90, le=90, description="Latitude for distance calculation")
+    lon: Optional[float] = Field(None, ge=-180, le=180, description="Longitude for distance calculation")
+    radius_km: Optional[float] = Field(default=50.0, ge=0.1, le=500.0, description="Search radius in kilometers")
+    sort: SortOption = Field(default=SortOption.relevance, description="Sort order")
     limit: int = Field(default=20, ge=1, le=100, description="Number of results to return")
     offset: int = Field(default=0, ge=0, description="Offset for pagination")
 
@@ -36,6 +49,7 @@ class PostResponse(BaseModel):
     comment_count: int = Field(..., description="Number of comments")
     created_at: datetime = Field(..., description="Creation timestamp")
     score: float = Field(..., description="Relevance score")
+    distance_km: Optional[float] = Field(None, description="Distance from user location in kilometers")
 
 
 class SuggestionResponse(BaseModel):

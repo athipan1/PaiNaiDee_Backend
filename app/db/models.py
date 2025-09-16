@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, ARRAY, Index, func
+from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, ARRAY, Index, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import expression
@@ -73,6 +73,12 @@ class PostMedia(Base):
 class PostLike(Base):
     """Post like model for community engagement"""
     __tablename__ = "post_likes"
+    __table_args__ = (
+        Index('idx_post_likes_post_id', 'post_id'),
+        Index('idx_post_likes_user_id', 'user_id'),
+        # Prevent duplicate likes from same user on same post
+        UniqueConstraint('post_id', 'user_id', name='uq_post_likes_post_user'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)

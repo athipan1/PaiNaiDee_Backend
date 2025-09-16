@@ -23,15 +23,23 @@ class SearchService:
     async def search_posts(
         self,
         query: str,
+        lat: Optional[float] = None,
+        lon: Optional[float] = None,
+        radius_km: Optional[float] = 50.0,
+        sort: str = "relevance",
         limit: int = 20,
         offset: int = 0,
         db: AsyncSession = None
     ) -> SearchResponse:
         """
-        Main search method for posts with fuzzy matching and ranking
+        Main search method for posts with fuzzy matching, geographic filtering, and ranking
         
         Args:
             query: Search query
+            lat: User latitude for distance calculation
+            lon: User longitude for distance calculation
+            radius_km: Search radius in kilometers
+            sort: Sort order (relevance, distance, popularity, newest)
             limit: Number of results to return
             offset: Offset for pagination
             db: Database session
@@ -56,6 +64,10 @@ class SearchService:
             query=normalized_query,
             expanded_terms=expanded_terms,
             location_ids=location_ids,
+            lat=lat,
+            lon=lon,
+            radius_km=radius_km,
+            sort=sort,
             limit=limit,
             offset=offset,
             db=db
@@ -63,7 +75,7 @@ class SearchService:
         
         # Convert to response format
         post_responses = []
-        for post, score in posts_with_scores:
+        for post, score, distance_km in posts_with_scores:
             media_responses = [
                 MediaResponse(
                     type=media.media_type,
@@ -91,7 +103,8 @@ class SearchService:
                 like_count=post.like_count,
                 comment_count=post.comment_count,
                 created_at=post.created_at,
-                score=score
+                score=score,
+                distance_km=distance_km
             ))
         
         # Generate suggestions
@@ -150,20 +163,85 @@ class SearchService:
         query: str,
         expanded_terms: set,
         location_ids: List[str],
+        lat: Optional[float],
+        lon: Optional[float],
+        radius_km: Optional[float],
+        sort: str,
         limit: int,
         offset: int,
         db: AsyncSession
-    ) -> List[Tuple[Post, float]]:
-        """Search posts with comprehensive ranking"""
+    ) -> List[Tuple[Post, float, Optional[float]]]:
+        """Search posts with comprehensive ranking including geographic distance"""
         
         # Convert expanded terms to list for SQL
         terms_list = list(expanded_terms)
         
+        # Determine if we have location context for distance calculation
+        has_location = lat is not None and lon is not None
+        
+        # Build geographic distance calculation if coordinates provided
+        distance_calc = ""
+        distance_filter = ""
+        if has_location:
+            # Haversine distance formula in SQL
+            distance_calc = f"""
+                , CASE 
+                    WHEN p.lat IS NOT NULL AND p.lng IS NOT NULL THEN
+                        6371 * ACOS(
+                            COS(RADIANS({lat})) * COS(RADIANS(p.lat)) * 
+                            COS(RADIANS(p.lng) - RADIANS({lon})) + 
+                            SIN(RADIANS({lat})) * SIN(RADIANS(p.lat))
+                        )
+                    WHEN l.lat IS NOT NULL AND l.lng IS NOT NULL THEN
+                        6371 * ACOS(
+                            COS(RADIANS({lat})) * COS(RADIANS(l.lat)) * 
+                            COS(RADIANS(l.lng) - RADIANS({lon})) + 
+                            SIN(RADIANS({lat})) * SIN(RADIANS(l.lat))
+                        )
+                    ELSE NULL
+                END as distance_km
+            """
+            
+            if radius_km:
+                distance_filter = f"""
+                    AND (
+                        (p.lat IS NOT NULL AND p.lng IS NOT NULL AND
+                         6371 * ACOS(
+                            COS(RADIANS({lat})) * COS(RADIANS(p.lat)) * 
+                            COS(RADIANS(p.lng) - RADIANS({lon})) + 
+                            SIN(RADIANS({lat})) * SIN(RADIANS(p.lat))
+                         ) <= {radius_km})
+                        OR
+                        (l.lat IS NOT NULL AND l.lng IS NOT NULL AND
+                         6371 * ACOS(
+                            COS(RADIANS({lat})) * COS(RADIANS(l.lat)) * 
+                            COS(RADIANS(l.lng) - RADIANS({lon})) + 
+                            SIN(RADIANS({lat})) * SIN(RADIANS(l.lat))
+                         ) <= {radius_km})
+                        OR
+                        (p.lat IS NULL AND p.lng IS NULL AND l.lat IS NULL AND l.lng IS NULL)
+                    )
+                """
+        else:
+            distance_calc = ", NULL as distance_km"
+        
+        # Determine sort order
+        sort_clause = "combined_score DESC"
+        if sort == "distance" and has_location:
+            sort_clause = "distance_km ASC NULLS LAST, combined_score DESC"
+        elif sort == "popularity":
+            sort_clause = "popularity_norm DESC, combined_score DESC"
+        elif sort == "newest":
+            sort_clause = "p.created_at DESC, combined_score DESC"
+        
         # Build dynamic SQL for post search with ranking
-        search_sql = text("""
+        search_sql = text(f"""
             WITH post_matches AS (
                 SELECT 
                     p.*,
+                    l.name as location_name,
+                    l.lat as location_lat,
+                    l.lng as location_lng,
                     CASE 
                         WHEN p.caption ILIKE ANY(:caption_terms) THEN 0.8
                         WHEN p.tags && :tags_array THEN 0.7
@@ -174,17 +252,20 @@ class SearchService:
                     LOG(1 + p.like_count + :alpha_comment * p.comment_count) / LOG(1001) as popularity_norm,
                     -- Recency decay (exponential)
                     EXP(-EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 60.0 / :tau_minutes) as recency_decay
+                    {distance_calc}
                 FROM posts p
+                LEFT JOIN locations l ON p.location_id = l.id
                 WHERE 
-                    p.caption ILIKE ANY(:caption_terms)
+                    (p.caption ILIKE ANY(:caption_terms)
                     OR p.tags && :tags_array
-                    OR p.location_id = ANY(:location_ids)
+                    OR p.location_id = ANY(:location_ids))
+                    {distance_filter}
             )
             SELECT 
                 *,
                 (:w_pop * popularity_norm + :w_recency * recency_decay) * relevance_score as combined_score
             FROM post_matches
-            ORDER BY combined_score DESC
+            ORDER BY {sort_clause}
             LIMIT :limit OFFSET :offset
         """)
         
@@ -208,13 +289,14 @@ class SearchService:
             }
         )
         
-        # Get post IDs and scores
+        # Get post IDs, scores, and distances
         post_data = result.fetchall()
         if not post_data:
             return []
         
         post_ids = [str(row.id) for row in post_data]
         scores = {str(row.id): row.combined_score for row in post_data}
+        distances = {str(row.id): getattr(row, 'distance_km', None) for row in post_data}
         
         # Fetch full post objects with relationships
         posts_query = select(Post).options(
@@ -225,9 +307,21 @@ class SearchService:
         posts_result = await db.execute(posts_query)
         posts = posts_result.scalars().all()
         
-        # Combine posts with scores and maintain order
-        posts_with_scores = [(post, scores[str(post.id)]) for post in posts]
-        posts_with_scores.sort(key=lambda x: x[1], reverse=True)
+        # Combine posts with scores and distances and maintain order
+        posts_with_scores = [
+            (post, scores[str(post.id)], distances[str(post.id)]) 
+            for post in posts
+        ]
+        
+        # Sort according to the original sort order
+        if sort == "distance" and has_location:
+            posts_with_scores.sort(key=lambda x: (x[2] is None, x[2] or float('inf'), -x[1]))
+        elif sort == "popularity":
+            posts_with_scores.sort(key=lambda x: (-x[0].like_count - 2*x[0].comment_count, -x[1]))
+        elif sort == "newest":
+            posts_with_scores.sort(key=lambda x: (-x[0].created_at.timestamp(), -x[1]))
+        else:  # relevance
+            posts_with_scores.sort(key=lambda x: -x[1])
         
         return posts_with_scores
     

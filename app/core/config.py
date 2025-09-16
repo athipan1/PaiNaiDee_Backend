@@ -21,6 +21,10 @@ class Settings(BaseSettings):
         default="a-secure-default-secret-for-development",
         env="JWT_SECRET_KEY"
     )
+    api_keys: str = Field(
+        default="demo-api-key,test-api-key", 
+        env="API_KEYS"
+    )
     
     # OpenAI/LLM configuration
     openai_api_key: str | None = Field(default=None, env="OPENAI_API_KEY")

@@ -1,29 +1,56 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.session import get_async_db
-from src.models import User  # Assuming FastAPI can access Flask's models
 
 # Reusable security scheme
-token_auth_scheme = HTTPBearer()
+token_auth_scheme = HTTPBearer(auto_error=False)
 
-async def get_current_user(
-    token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),
-    db: AsyncSession = Depends(get_async_db)
-) -> User:
-    """
-    Dependency to get the current user from a JWT token.
-    """
-    if token is None:
+
+class CurrentUser:
+    """Simple user representation for API key authentication"""
+    def __init__(self, user_id: str, auth_type: str = "api_key"):
+        self.id = user_id
+        self.auth_type = auth_type
+    
+    def __str__(self):
+        return f"User(id={self.id}, auth_type={self.auth_type})"
+
+
+async def verify_api_key(
+    x_api_key: Optional[str] = Header(None),
+    x_actor_id: Optional[str] = Header(None)
+) -> Optional[CurrentUser]:
+    """Verify API key authentication"""
+    if not x_api_key:
+        return None
+    
+    # Get API keys from settings
+    valid_api_keys = getattr(settings, 'api_keys', 'demo-api-key,test-api-key').split(',')
+    valid_api_keys = [key.strip() for key in valid_api_keys if key.strip()]
+    
+    if x_api_key not in valid_api_keys:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication token is missing",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Invalid API key"
         )
+    
+    # Use provided actor ID or default
+    actor_id = x_actor_id or f"api_user_{x_api_key[:8]}"
+    return CurrentUser(actor_id, "api_key")
 
+
+async def verify_jwt_token(
+    token: Optional[HTTPAuthorizationCredentials] = Depends(token_auth_scheme)
+) -> Optional[CurrentUser]:
+    """Verify JWT token authentication"""
+    if not token:
+        return None
+    
     try:
         payload = jwt.decode(
             token.credentials,
@@ -37,10 +64,9 @@ async def get_current_user(
                 detail="Invalid token: Subject (sub) claim missing",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-
-        # The identity from flask_jwt_extended is a string, convert to int
-        user_id = int(user_id)
-
+        
+        return CurrentUser(str(user_id), "jwt")
+        
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,39 +79,34 @@ async def get_current_user(
             detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except (ValueError, TypeError):
-         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid user ID in token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
-    # In an async context, we need to use the async session to get the user
-    user = await db.get(User, user_id)
-    if user is None:
+
+async def get_current_user(
+    api_user: Optional[CurrentUser] = Depends(verify_api_key),
+    jwt_user: Optional[CurrentUser] = Depends(verify_jwt_token)
+) -> CurrentUser:
+    """
+    Dependency to get the current user from either API key or JWT token.
+    API key authentication takes precedence over JWT.
+    """
+    current_user = api_user or jwt_user
+    
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Authentication required. Provide either X-API-Key header or Authorization Bearer token.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    return user
+    
+    return current_user
 
 
 async def get_optional_current_user(
-    token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),
-    db: AsyncSession = Depends(get_async_db)
-) -> User | None:
+    api_user: Optional[CurrentUser] = Depends(verify_api_key),
+    jwt_user: Optional[CurrentUser] = Depends(verify_jwt_token)
+) -> Optional[CurrentUser]:
     """
-    Dependency to get the current user if a token is provided.
-    If no token is provided, returns None.
+    Dependency to get the current user if authentication is provided.
+    Returns None if no authentication is provided.
     """
-    if token is None:
-        return None
-
-    try:
-        # If a token is provided, try to validate it and get the user
-        return await get_current_user(token, db)
-    except HTTPException:
-        # If token is invalid or expired, treat as anonymous user
-        return None
+    return api_user or jwt_user
