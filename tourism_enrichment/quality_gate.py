@@ -67,8 +67,10 @@ def main():
     args = parser.parse_args()
     with open(args.candidates, encoding="utf-8") as f:
         candidates = json.load(f)
-    with open(args.existing, encoding="utf-8") as f:
-        existing = json.load(f) if args.existing else []
+    existing = []
+    if args.existing:
+        with open(args.existing, encoding="utf-8") as f:
+            existing = json.load(f)
     if not isinstance(candidates, list) or not isinstance(existing, list):
         parser.error("JSON inputs must be arrays")
     print(json.dumps(assess(candidates, existing), ensure_ascii=False, indent=2))
